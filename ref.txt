@@ -1,0 +1,11 @@
+push 
+HLT
+add 
+mul
+sqrt
+sin
+cos
+div
+sub
+in
+out

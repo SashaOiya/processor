@@ -1,63 +1,17 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "compil.h"
 
-int GetFileSize ( FILE * f );
-
-#ifdef DEBUG
-#define $ printf ( "%d\n", __LINE__ );
-#else
-#define $
-#endif
-
-enum Code {
-    PUSH,
-    HLT ,
-    ADD ,
-    MUL ,
-    SQRT,
-    SIN ,
-    COS ,
-    DIV ,
-    SUB ,
-    IN  ,
-    OUT
-};
-
-struct Comand {
-    char *str;
-    int code;
-};
-
-struct Comand_Code {
-    const int n_comands = 11;
-    struct Comand arr[11] = {
-                              { "push", PUSH }, { "HLT" , HLT }, { "add", ADD },
-                              { "mul" , MUL  }, { "sqrt", SQRT}, { "sin", SIN },
-                              { "cos" , COS  }, { "div" , DIV }, { "sub", SUB },
-                              { "in"  , IN   }, { "out" , OUT }
-                            };
-};
-
-struct Text_t {
-    int file_size = 0;
-    char *start = nullptr;
-};
-
-int Compare ( FILE *code, Comand_Code cc, char *start, float ptr_elements );
-
-int main ()
+FILE* assembler ()
 {
-    FILE *f = fopen ( "start.txt", "r" );
-    FILE *code = fopen ( "code.txt", "w" );
+    FILE *comand_f = fopen ( "start.txt", "r" );
+    FILE *code_f   = fopen ( "code.txt", "w" );
 
     Comand_Code CC = {};
     Text_t Text    = {};
 
-    Text.file_size = GetFileSize ( f );
+    Text.file_size = GetFileSize ( comand_f );
 
     char *buffer = ( char *)calloc ( Text.file_size + 1, sizeof ( char ) );
-    fread ( buffer, sizeof( buffer[0] ), Text.file_size, f );    //return value
+    fread ( buffer, sizeof( buffer[0] ), Text.file_size, comand_f );    //return value
     buffer[Text.file_size] = '\n';
 
     int n_lines = 0;
@@ -90,10 +44,16 @@ int main ()
         if ( flag == false ) {
             start[i] = buffer + j - len;
         }
-        Compare ( code, CC, start[i], ptr_elements[i] );
+        Compare ( code_f, CC, start[i], ptr_elements[i] );
     }
 
-    return 0;
+    free(buffer);
+    free(start);
+    free(ptr_elements);
+
+    fclose ( comand_f );
+
+    return code_f;
 }
 
 int GetFileSize ( FILE * f )
@@ -119,4 +79,9 @@ $           break;
     }
 
 $   return 0; // error code
+}
+
+int AsmCtor ()
+{
+
 }
