@@ -1,118 +1,120 @@
+//#define loxxx %c
+
 #include "stack.h"
 
-/* int main()
+int main()
 {
     //printf ("%d\n", sizeof ( long ) );
     Stack_Data_t Stack = {};
-$
-    Stack.str = (float *)StackCtor ( Stack.size_stack, sizeof ( float) );
+    FILE *f = fopen ( "code.txt", "r" );
+
+    Stack.str = StackCtor ( Stack.size_stack );
 
     //StackHash ( &Stack.canary_left,  &Stack.canary_right );
+                                                                      //n_lines * 2
+    StackCreator ( f, &Stack.capacity, &Stack.size_stack, &Stack.str, 22  );
 
-    //StackCreator ( &Stack.capacity, &Stack.size_stack, (void **)&Stack.str  );
-
-    StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity, sizeof (float) );
+    StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity );
 
     //free ( Stack.str );
-    StackDtor ( Stack.str, Stack.size_stack, sizeof ( float) );
+    StackDtor ( Stack.str, Stack.size_stack );
 
-    StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity, sizeof (float) );
+    //StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity );
 
     //StackHash ( &Stack.canary_left,  &Stack.canary_right );
 
     return 0;
-}    */
+}
 
 // stackResize
-void * StackCtor ( const int size_stack, size_t size )   //void enum
+char_t * StackCtor ( const int size_stack )   //void enum
 {
-    void *str_begine = calloc ( size_stack * size + sizeof(long long) * 2, size );   //free
+    char_t *str_begine = (char_t *)calloc ( size_stack + sizeof(long long) * 2, sizeof ( char_t ) );   //free
     // str_begin == nullptr
-
     // StackRealloc()
-    void *str = ( float *)str_begine + sizeof ( long long );
+    char_t *str = str_begine + sizeof ( long long );
 
     return str;
 $
 }
                                        //data
-void* StackRedistribute ( void *stack, int size_stack, size_t size )
+char_t* StackRedistribute ( char_t *str, int size_stack )
 {
                                                 //#warning no canary
     // int main()
     //realloc
-    void *ptr_begine = realloc ( stack, size_stack * size + sizeof(long long) * 2 );   //free
+$   char_t *ptr_begine = (char_t *)calloc( size_stack, sizeof ( char_t ) );   //free
     // callloc == nullptr
-    void *ptr = (float *)ptr_begine + sizeof ( long long );  //canary
+$   char_t *ptr = ptr_begine;
 
-    //memset ( ptr, 0, size_stack * size ); // ptr + capacity
+$   //memset ( ptr, 0, size_stack * sizeof ( char_t ) ); // ptr + capacity
 
-    //strcpy ( ptr, stack );
+    //strcpy ( ptr, str );
+$   memcpy ( ptr, str, size_stack * sizeof ( char_t ) / 2 );
 
 $   return ptr;
 }
 
-void StackDump ( const void *stack, const char* func_name, const char* file_name,
-                 size_t size_stack, const size_t capacity, size_t size )    // void
+void StackDump ( const char_t *stack, const char* func_name, const char* file_name,
+                 size_t size_stack, const size_t capacity )    // void
 {
 $   printf ( "Stack [%p] ", stack );
-    //name_print( (float *)stack )
+    name_print( stack )
     printf ( " called from%s\n "
              "{\n\t%s  \n\t{ \n "
              " \t\tsize = %d \n "
              " \t\tcapacity = %d \n "
              " \t\tdata [%p]:\n", file_name, func_name, size_stack, capacity, stack  ); // data
-$   for ( size_t i = 0; i < size_stack; ++i ) {
-$       printf ( "\t\tdata[%d] = %g \n", i, *( (const float *)stack + i * size ) );
+$   for ( int i = 0; i < size_stack; ++i ) {
+$       printf ( "\t\tdata[%d] = %d\n", i, stack[i] );
     }
 $   printf ( "\t}\n}\n");
 }
 
-int StackDtor ( void *stack, size_t size_stack, size_t size )      // plus errors check
+int StackDtor ( char_t *stack, size_t size_stack )      // plus errors check
 {
     assert ( stack != nullptr );
 
-// 3?
-$   memset ( (float *)stack - 8 , 3, size_stack * size + 2 * sizeof ( canary_t ) ) ;
+$   memset ( stack, 0, size_stack * sizeof ( char_t ) ) ;
 
-    free ( (float *)stack - 8 );// sizeof ( canary )
+    free ( stack );// sizeof ( canary )
 
     return NO_ERRORS;
 }
 
-Errors_t StackPush ( void *stack[], float value, int * size_stack, const int capacity, size_t size ) // struct Stack
+Errors_t StackPush ( char_t *str[], const char_t value, int * size_stack, const int capacity ) // struct Stack
 {
 
 // asserttttttttt!!!!
-    if ( capacity == *size_stack ) {
-        *size_stack = 2 * (*size_stack);
+$   if ( capacity == *size_stack ) {
+$       *size_stack = 2 * (*size_stack);
 
-        *(float **)stack = (float *)StackRedistribute ( *stack, *size_stack, size );
+$       *str = StackRedistribute ( *str, *size_stack );
+$       //printf ("lox inside %p\n", *str );
 $   }
-$   *( *(float **)stack + capacity - 1 ) = value;
+$   *( *str + capacity - 1 ) = value;
 
     return NO_ERRORS;   //errors
 }
 
-void StackPop ( const void *stack, void *temp_array, size_t size )
+Errors_t StackPop ( const char_t *str_1, char_t *str_2 )
 {
     //--str_1;
-    //void value = *stack;
-    *(float *)temp_array = *(float *)stack;
-    //--Stack;
+    *str_2 = *str_1;
 
-    //return value;   //errors   // *str_1 // str_1  name
+    return NO_ERRORS;   //errors   // *str_1 // str_1  name
 }
 
 
 // test.cpp
-void StackCreator ( int *capacity, int *size_stack, void *stack[], size_t size  )    // *
+void StackCreator ( FILE *f, int *capacity, int *size_stack, char_t *str[], int n_lines  )    // *
 {
-    char c = 0;
-    for ( int i = 0; ( c = getchar() ) != '\n'; ++ i ) {
+    char_t c = 0;
+    for ( int i = 0; i < n_lines; ++ i ) {
+        fscanf ( f, SPECIFIER, &c );
         ++*capacity;
-        StackDump ( *stack, __PRETTY_FUNCTION__, __FILE__, *size_stack, *capacity, size );
-$       StackPush ( stack, c, size_stack, *capacity, size );
+        StackDump ( *str, __PRETTY_FUNCTION__, __FILE__, *size_stack, *capacity );
+$       StackPush ( str, c, size_stack, *capacity );
 $       //StackPop ( *str + i, *stack_data + i );
     }
 }
@@ -133,10 +135,10 @@ int StackHash ( void *begin_stack, void *end_stack ) // struc Stack
     return sum;
 }
                                                                       //switch
-int Verificator ( const void *stack, size_t size_stack,
+int Verificator ( const char_t *str, size_t size_stack,
                   const size_t capacity, int *error_indificate )   // struct
 {
-    if ( stack == nullptr ) {
+    if ( str == nullptr ) {
         (*error_indificate ) | ( (*error_indificate) | 1 << 2 );
     }
     if ( size_stack < 0 || size_stack < capacity ) {
@@ -146,5 +148,6 @@ int Verificator ( const void *stack, size_t size_stack,
         (*error_indificate ) | ( (*error_indificate) | 1 << 0 );//enum
     }
 }
+
 
 
