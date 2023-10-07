@@ -29,39 +29,21 @@ $
     Assembler ( &vm_spu.n_comands );
 
     FILE *file_f = fopen ( "code.txt", "r" );
-    float *arg_array = ( float *)calloc ( vm_spu.n_comands * 2, sizeof ( float ) );
+    char_t *arg_array = (char_t *)calloc ( vm_spu.n_comands * 2, sizeof ( char_t ) );
 
     for ( int i = 0, arg_indicator = 0, j = 0; i < vm_spu.n_comands * 2; ++i ) {
         if ( i % 2 == 0 ) {
-            float command = 0;
-            fscanf ( file_f, "%g", &command );
-            printf ("%g\t%d\n", command, i );
-            /*++Stack.capacity;
-            //printf ( "capacity %d\n", Stack.capacity );
-            //arg_indicator = Processing ( command, &Stack );   // arg flag
-            //StackPush ( ( void **)&Stack.str, command, &Stack.size_stack, Stack.capacity, sizeof ( float ) );
-            if ( Stack.capacity == Stack.size_stack ) {
-
-                Stack.size_stack = 2 * (Stack.size_stack);
-
-                float *ptr_begine = (float *)calloc ( Stack.size_stack * sizeof ( float ) + sizeof(long long) * 2, sizeof ( float ) );   //free
-
-                float *ptr = ptr_begine + sizeof ( long long );
-
-                memset ( ptr, 0, Stack.size_stack * sizeof ( float ) ); // ptr + capacity
-
-                memcpy ( ptr, Stack.str, i * sizeof ( float ) );
-
-                Stack.str = ptr;
-$           }
-$           *( Stack.str + i * sizeof ( float ) ) = command; */
+            int command = 0;
+            fscanf ( file_f, "%d", &command );
+            arg_indicator = Processing ( command, &Stack );
         }
         else if ( i % 2 == 1 && arg_indicator != ARG_END ) {
-            float value = 0;   // const
-            fscanf ( file_f, "%g\n", &value );
+            char_t value = 0;   // const
+            fscanf ( file_f, SPECIFIER, &value );
 
             if ( arg_indicator == ARG_INPUT ) {
-                //StackPush ( ( void **)&Stack.str, value, &Stack.size_stack, Stack.capacity, sizeof ( float ) );
+                //++Stack.capacity;
+                StackPush( &Stack.str, value, &Stack.size_stack, &Stack.capacity );
             }
             else if ( arg_indicator == ARG_OUTPUT ) {
                 //StackPop( );
@@ -75,20 +57,23 @@ $           *( Stack.str + i * sizeof ( float ) ) = command; */
     return 0;
 }
 
-int Processing ( int command, Stack_Data_t *Stack )
+char_t Processing ( int command, Stack_Data_t *Stack )
 {
     int arg_indicator = 0;
 
     switch ( command ) {
         case PUSH :
             arg_indicator = ARG_INPUT; // enum return value
-            //Push();
+            //StackPush( &Stack->str, value, &Stack.size_stack, Stack.capacity );
             break;
         case HLT  :
             arg_indicator = ARG_END;
             break;
         case ADD  :
             arg_indicator = ARG_OUTPUT;
+            //--(Stack->capacity);
+            //char_t temp = 0;
+
             break;
         case MUL  :
             arg_indicator = ARG_OUTPUT;

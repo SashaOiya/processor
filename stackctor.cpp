@@ -2,7 +2,7 @@
 
 #include "stack.h"
 
-int main()
+/*int main()
 {
     //printf ("%d\n", sizeof ( long ) );
     Stack_Data_t Stack = {};
@@ -24,7 +24,7 @@ int main()
     //StackHash ( &Stack.canary_left,  &Stack.canary_right );
 
     return 0;
-}
+}   */
 
 // stackResize
 char_t * StackCtor ( const int size_stack )   //void enum
@@ -82,32 +82,34 @@ $   memset ( stack, 0, size_stack * sizeof ( char_t ) ) ;
     return NO_ERRORS;
 }
 
-Errors_t StackPush ( char_t *str[], const char_t value, int * size_stack, const int capacity ) // struct Stack
+Errors_t StackPush ( char_t *str[], const char_t value, int * size_stack, int *capacity ) // struct Stack
 {
 
 // asserttttttttt!!!!
-$   if ( capacity == *size_stack ) {
+    ++(*capacity);
+$   if ( *capacity == *size_stack ) {
 $       *size_stack = 2 * (*size_stack);
 
 $       *str = StackRedistribute ( *str, *size_stack );
 $       //printf ("lox inside %p\n", *str );
 $   }
-$   *( *str + capacity - 1 ) = value;
+$   *( *str + *capacity - 1 ) = value;
 
     return NO_ERRORS;   //errors
 }
 
-Errors_t StackPop ( const char_t *str_1, char_t *str_2 )
+char_t StackPop ( const char_t *stack, int *capacity  )
 {
     //--str_1;
-    *str_2 = *str_1;
+    char_t temp = *( stack + *capacity );
+    --(*capacity);
 
-    return NO_ERRORS;   //errors   // *str_1 // str_1  name
+    return temp;   //errors   // *str_1 // str_1  name
 }
 
 
 // test.cpp
-void StackCreator ( FILE *f, int *capacity, int *size_stack, char_t *str[], int n_lines  )    // *
+/*void StackCreator ( FILE *f, int *capacity, int *size_stack, char_t *str[], int n_lines  )    // *
 {
     char_t c = 0;
     for ( int i = 0; i < n_lines; ++ i ) {
@@ -117,7 +119,7 @@ void StackCreator ( FILE *f, int *capacity, int *size_stack, char_t *str[], int 
 $       StackPush ( str, c, size_stack, *capacity );
 $       //StackPop ( *str + i, *stack_data + i );
     }
-}
+}  */
 
 int StackHash ( void *begin_stack, void *end_stack ) // struc Stack
 {
