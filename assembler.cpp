@@ -1,6 +1,6 @@
-#include "compil.h"
+#include "assembler.h"
 
-FILE* assembler ()
+FILE* Assembler ( int *n_comands )
 {
     FILE *comand_f = fopen ( "start.txt", "r" );
     FILE *code_f   = fopen ( "code.txt", "w" );
@@ -14,44 +14,11 @@ FILE* assembler ()
     fread ( buffer, sizeof( buffer[0] ), Text.file_size, comand_f );    //return value
     buffer[Text.file_size] = '\n';
 
-    int n_lines = 0;
+    Split ( &Text, code_f, CC, buffer );
 
-    for ( int i = 0; i <= Text.file_size; ++i ) {
-        if ( *( buffer + i ) == '\n' ) {
-            ++n_lines;
-            *( buffer + i ) = '\0';
-        }
-    }
+    *n_comands = Text.n_lines;
 
-    char **start = (char **)calloc ( n_lines, sizeof ( char *) );
-    float *ptr_elements = (float *)calloc ( n_lines, sizeof ( float ) );
-
-    for ( int i = 0, j = 0; i < n_lines; ++j, ++i ) {
-        int len = 0;
-        bool flag = false;
-        while ( buffer[j] != '\0' ) {   // flag E space   '\n'
-            if ( buffer[j] == ' ' ) {
-                buffer[j] = '\0';
-                flag = true;
-                start[i] = buffer + j - len;
-                ptr_elements[i] = ( float )atof ( buffer + j + 1 );
-            }
-            else if ( buffer[j] != ' ' && flag == false ) {
-                ++len;
-            }
-            ++j;
-        }
-        if ( flag == false ) {
-            start[i] = buffer + j - len;
-        }
-        Compare ( code_f, CC, start[i], ptr_elements[i] );
-    }
-
-    free(buffer);
-    free(start);
-    free(ptr_elements);
-
-    fclose ( comand_f );
+    AsmDtor ( buffer, Text.line_array, code_f );
 
     return code_f;
 }
@@ -81,7 +48,43 @@ $           break;
 $   return 0; // error code
 }
 
-int AsmCtor ()
+int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f )
 {
+    free(buffer);
+    free(line_array);
 
+    fclose ( comand_f ); //error
+}
+
+int Split ( Text_t *Text, FILE *code_f, Comand_Code CC, char *buffer )
+{
+    for ( int i = 0; i <= Text->file_size; ++i ) {
+        if ( *( buffer + i ) == '\n' ) {
+            ++(Text->n_lines);
+            *( buffer + i ) = '\0';
+        }
+    }
+
+    Text->line_array = ( Line_t *)calloc ( Text->n_lines, sizeof ( Line_t) );
+
+    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
+        int len = 0;
+        bool flag = false;
+        while ( buffer[j] != '\0' ) {   // flag E space   '\n'
+            if ( buffer[j] == ' ' ) {
+                buffer[j] = '\0';
+                flag = true;
+                Text->line_array[i].start = buffer + j - len;
+                Text->line_array[i].element = ( float )atof ( buffer + j + 1 );
+            }
+            else if ( buffer[j] != ' ' && flag == false ) {
+                ++len;
+            }
+            ++j;
+        }
+        if ( flag == false ) {
+            Text->line_array[i].start = buffer + j - len;
+        }
+        Compare ( code_f, CC, Text->line_array[i].start, Text->line_array[i].element );
+    }
 }

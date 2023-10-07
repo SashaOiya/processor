@@ -1,9 +1,9 @@
 push 4
-in 4
+in 
 mul
 push 4
-in 1
-in -9
+in 
+in 
 mul
 mul
 sub

@@ -65,8 +65,10 @@ $   printf ( "Stack [%p] ", stack );
              " \t\tsize = %d \n "
              " \t\tcapacity = %d \n "
              " \t\tdata [%p]:\n", file_name, func_name, size_stack, capacity, stack  ); // data
-$   for ( int i = 0; i < size_stack; ++i ) {
-$       printf ( "\t\tdata[%d] = %d\n", i, stack[i] );
+$   for ( size_t i = 0; i < size_stack; ++i ) {
+$       printf ( "\t\tdata[%d] = ", i );
+        printf ( SPECIFIER, stack[i] );
+        printf ( "\n" );
     }
 $   printf ( "\t}\n}\n");
 }
@@ -132,8 +134,8 @@ int StackHash ( void *begin_stack, void *end_stack ) // struc Stack
         sum += *( (char *)begin_stack + i );
     }
 
-    printf ("%d\n", size_stack);
-    printf ("%lld\n", sum );
+    /*printf ("%d\n", size_stack);
+    printf ("%lld\n", sum );   */
 
     return sum;
 }
