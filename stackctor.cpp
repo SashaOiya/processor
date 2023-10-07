@@ -98,11 +98,12 @@ $   *( *str + *capacity - 1 ) = value;
     return NO_ERRORS;   //errors
 }
 
-char_t StackPop ( const char_t *stack, int *capacity  )
+char_t StackPop ( char_t *stack, int *capacity  )
 {
     //--str_1;
-    char_t temp = *( stack + *capacity );
+    char_t temp = *( stack + *capacity - 1 );
     --(*capacity);
+    *( stack + *capacity ) = 0; // const
 
     return temp;   //errors   // *str_1 // str_1  name
 }

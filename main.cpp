@@ -42,15 +42,15 @@ $
             fscanf ( file_f, SPECIFIER, &value );
 
             if ( arg_indicator == ARG_INPUT ) {
-                //++Stack.capacity;
                 StackPush( &Stack.str, value, &Stack.size_stack, &Stack.capacity );
             }
             else if ( arg_indicator == ARG_OUTPUT ) {
-                //StackPop( );
+                //char_t temp = StackPop( Stack.str, &Stack.capacity ) StackPop( Stack.str, &Stack.capacity );
             }
             arg_indicator = 0;  // const
         }
         //printf ( "%g\n", arg_array[i] );
+        StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity );
     }
     StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity );
 
@@ -75,8 +75,12 @@ char_t Processing ( int command, Stack_Data_t *Stack )
             //char_t temp = 0;
 
             break;
-        case MUL  :
+        case MUL :
+            {
             arg_indicator = ARG_OUTPUT;
+            char_t temp = StackPop( Stack->str, &Stack->capacity ) * StackPop( Stack->str, &Stack->capacity );
+            StackPush( &Stack->str, temp, &Stack->size_stack, &Stack->capacity );
+            }
             break;
         case SQRT :
             arg_indicator = ARG_OUTPUT;
