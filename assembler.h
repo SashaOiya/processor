@@ -6,6 +6,8 @@
 #include <string.h>
 #include "comand_code.h"
 
+//typedef float char_t;
+
 #ifdef DEBUG
 #define $ printf ( "%d\n", __LINE__ );
 #else

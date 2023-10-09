@@ -1,4 +1,5 @@
 #include "assembler.h"
+#include "stack.h"
 
 FILE* Assembler ( int *n_comands )
 {
@@ -59,7 +60,7 @@ int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f )
 int Split ( Text_t *Text, FILE *code_f, Comand_Code CC, char *buffer )
 {
     for ( int i = 0; i <= Text->file_size; ++i ) {
-        if ( *( buffer + i ) == '\n' ) {
+        if ( *( buffer + i ) == ';' ) {
             ++(Text->n_lines);
             *( buffer + i ) = '\0';
         }
@@ -75,15 +76,19 @@ int Split ( Text_t *Text, FILE *code_f, Comand_Code CC, char *buffer )
                 buffer[j] = '\0';
                 flag = true;
                 Text->line_array[i].start = buffer + j - len;
-                Text->line_array[i].element = ( float )atof ( buffer + j + 1 );
+                Text->line_array[i].element = ( char_t )atof ( buffer + j + 1 );
             }
             else if ( buffer[j] != ' ' && flag == false ) {
                 ++len;
             }
             ++j;
         }
+        //buffer[j] = '\0';
         if ( flag == false ) {
             Text->line_array[i].start = buffer + j - len;
+        }
+        while ( buffer[j] != '\n' ) {
+            ++j;
         }
         Compare ( code_f, CC, Text->line_array[i].start, Text->line_array[i].element );
     }
