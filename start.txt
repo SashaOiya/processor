@@ -1,11 +1,11 @@
-push 4
-in 
-mul
-push 4
-in 
-in 
-mul
-mul
-sub
-out
-HLT
+push 4; lox
+in;
+mul;
+push 4; meow
+in; 
+in; 
+mul;
+mul;
+sub;
+out;
+HLT;

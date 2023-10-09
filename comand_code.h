@@ -20,7 +20,7 @@ struct Comand {
     int code;
 };
 
-struct Comand_Code {
+struct Comand_Code { // remove    // this is krivo!!!
     const int n_comands = 11;
     const struct Comand arr[11] = {
                                     { "push", PUSH }, { "HLT" , HLT }, { "add", ADD },
@@ -28,6 +28,6 @@ struct Comand_Code {
                                     { "cos" , COS  }, { "div" , DIV }, { "sub", SUB },
                                     { "in"  , IN   }, { "out" , OUT }
                                   };
-};
+};                            // remove
 
 #endif  // COMAND_CODE

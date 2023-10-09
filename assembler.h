@@ -9,7 +9,7 @@
 //typedef float char_t;
 
 #ifdef DEBUG
-#define $ printf ( "%d\n", __LINE__ );
+#define $ fprintf (stderr, "%d\n", __LINE__ );
 #else
 #define $
 #endif

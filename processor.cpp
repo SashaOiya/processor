@@ -1,86 +1,38 @@
-#include <stdio.h>
-#include "comand_code.h"
-#include "assembler.h"
-#include "stack.h"
-#include <cmath>
-
-struct Vm_t {
-    int n_comands = 0;    //
-};
-
-enum Arg_Indicator {
-    ARG_END,
-    ARG_INPUT,
-    ARG_OUTPUT,
-    ARG_INPUT_IN,
-    ARG_ERROR
-};
-
-int Processing ( int command, Stack_Data_t *Stack );
+#include "processor.h"
 
 int main ()
 {
-    Vm_t vm_spu = {};
-    //Arg_Indicator Arg = {};
+    Vm_t Vm_spu = {};
     Stack_Data_t Stack = {};
 $
     Stack.str = StackCtor ( Stack.size_stack );
 
     StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity );
 
-    Assembler ( &vm_spu.n_comands );
+    Assembler ( &Vm_spu.n_comands );
 
     FILE *file_f = fopen ( "code.txt", "r" );
 
-    for ( int i = 0, arg_indicator = 0; i < vm_spu.n_comands * 2; ++i ) {
-        if ( i % 2 == 0 ) {
-            int command = 0;
-            fscanf ( file_f, "%d", &command );
-            arg_indicator = Processing ( command, &Stack );
-        }
-        else if ( i % 2 == 1 && arg_indicator == ARG_END ) {
+    if ( Processor ( Vm_spu, &Stack, file_f ) == -1 ) {
 
-            return -1;
-        }
-        else if ( i % 2 == 1 && arg_indicator != ARG_END ) {         // 4 1 -9
-            char_t value = 0;
-            fscanf ( file_f, SPECIFIER, &value );
-
-            if ( arg_indicator == ARG_INPUT ) {
-                StackPush( &Stack.str, value, &Stack.size_stack, &Stack.capacity );
-            }
-            else if ( arg_indicator == ARG_INPUT_IN ) {
-                printf ( "input your value : " );
-                scanf ( SPECIFIER, &value );
-                StackPush( &Stack.str, value, &Stack.size_stack, &Stack.capacity );
-            }
-            else if ( arg_indicator == ARG_OUTPUT ) {
-                //char_t temp = StackPop( Stack.str, &Stack.capacity ) StackPop( Stack.str, &Stack.capacity );
-            }
-            arg_indicator = 0;  // const
-        }
-        else {
-            printf ( "Sorry, you are having some errors" );
-
-            return -1;
-        }
-        StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity );
+        return -1;
     }
 
+    StackDtor ( Stack.str, Stack.size_stack );
 
     StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity );
 
     return 0;
 }
 
-int Processing ( int command, Stack_Data_t *Stack )
+int Processing ( int command, Stack_Data_t *Stack, char_t value )
 {
     int arg_indicator = 0;
 
     switch ( command ) {
         case PUSH : {
-                arg_indicator = ARG_INPUT; // enum return value
-            //StackPush( &Stack->str, value, &Stack.size_stack, Stack.capacity );
+                arg_indicator = ARG_INPUT;
+                StackPush( &Stack->str, value, &Stack->size_stack, &Stack->capacity );
             }
             break;
         case HLT  :
@@ -128,8 +80,13 @@ int Processing ( int command, Stack_Data_t *Stack )
                 StackPush( &Stack->str, temp, &Stack->size_stack, &Stack->capacity );
             }
             break;
-        case IN   :
-            arg_indicator = ARG_INPUT_IN;
+        case IN   : {
+                arg_indicator = ARG_INPUT_IN;
+                char_t value = 0;
+                printf ( "input your value : " );
+                scanf ( SPECIFIER, &value );
+                StackPush( &Stack->str, value, &Stack->size_stack, &Stack->capacity );
+            }
             break;
         case OUT  : {
                 arg_indicator = ARG_OUTPUT;
@@ -143,4 +100,22 @@ int Processing ( int command, Stack_Data_t *Stack )
     }
 
     return arg_indicator;
+}
+
+int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f )   // return error
+{
+    for ( int i = 0, arg_indicator = 0, command = 0; i < Vm_spu.n_comands * 2; ++i ) {
+        char_t value = 0;
+        fscanf ( file_f, "%d", &command );        //error
+        fscanf ( file_f, SPECIFIER, &value );
+
+        arg_indicator = Processing ( command, Stack, value );
+
+        if ( arg_indicator == ARG_END ) {
+
+            return -1;
+        }
+
+        StackDump ( Stack->str, INFORMATION , Stack->size_stack, Stack->capacity );
+    }
 }
