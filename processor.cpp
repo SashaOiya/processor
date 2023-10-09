@@ -5,7 +5,7 @@
 #include <cmath>
 
 struct Vm_t {
-    int n_comands = 0;
+    int n_comands = 0;    //
 };
 
 enum Arg_Indicator {
@@ -37,6 +37,10 @@ $
             int command = 0;
             fscanf ( file_f, "%d", &command );
             arg_indicator = Processing ( command, &Stack );
+        }
+        else if ( i % 2 == 1 && arg_indicator == ARG_END ) {
+
+            return -1;
         }
         else if ( i % 2 == 1 && arg_indicator != ARG_END ) {         // 4 1 -9
             char_t value = 0;
