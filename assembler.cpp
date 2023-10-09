@@ -1,6 +1,15 @@
 #include "assembler.h"
 #include "stack.h"
 
+int main ()
+{
+    int n_comands = 0;
+
+    Assembler ( &n_comands );
+
+    return 0;
+}
+
 FILE* Assembler ( int *n_comands )
 {
     FILE *comand_f = fopen ( "start.txt", "r" );
@@ -35,11 +44,12 @@ int GetFileSize ( FILE * f )
     return sizet;
 }
 
-int Compare ( FILE *code, Comand_Code cc, char *start, float ptr_elements )
+int Compare ( FILE *code, Comand_Code cc, char *start, float ptr_elements, int registerr )
 {
 $   for ( int i = 0; i < cc.n_comands; ++i ) {
 $       if ( strcmp ( start, cc.arr[i].str ) == 0 ) {
 $           fprintf ( code, "%d ", cc.arr[i].code );
+            fprintf ( code, "%d ", registerr );
             fprintf ( code, "%g\n", ptr_elements );
 $
 $           break;
@@ -76,7 +86,16 @@ int Split ( Text_t *Text, FILE *code_f, Comand_Code CC, char *buffer )
                 buffer[j] = '\0';
                 flag = true;
                 Text->line_array[i].start = buffer + j - len;
-                Text->line_array[i].element = ( char_t )atof ( buffer + j + 1 );
+                if ( *( buffer + j + 1 ) == 'r' &&
+                     *( buffer + j + 3 ) == 'x' &&
+                     *( buffer + j + 4 ) == '\0' ) {
+                    Text->line_array[i].registerr = 1;
+                    Text->line_array[i].element = 0;
+                }
+                else {
+                    Text->line_array[i].registerr = 0;
+                    Text->line_array[i].element = ( char_t )atof ( buffer + j + 1 );
+                }
             }
             else if ( buffer[j] != ' ' && flag == false ) {
                 ++len;
@@ -86,10 +105,12 @@ int Split ( Text_t *Text, FILE *code_f, Comand_Code CC, char *buffer )
         //buffer[j] = '\0';
         if ( flag == false ) {
             Text->line_array[i].start = buffer + j - len;
+            Text->line_array[i].registerr = 0;
+            Text->line_array[i].element = 0;  // wtf
         }
         while ( buffer[j] != '\n' ) {
             ++j;
         }
-        Compare ( code_f, CC, Text->line_array[i].start, Text->line_array[i].element );
+        Compare ( code_f, CC, Text->line_array[i].start, Text->line_array[i].element, Text->line_array[i].registerr );
     }
 }

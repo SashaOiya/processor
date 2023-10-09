@@ -12,7 +12,8 @@ enum Code {
     DIV ,
     SUB ,
     IN  ,
-    OUT
+    OUT ,
+    POP
 };
 
 struct Comand {
@@ -21,12 +22,12 @@ struct Comand {
 };
 
 struct Comand_Code { // remove    // this is krivo!!!
-    const int n_comands = 11;
-    const struct Comand arr[11] = {
+    const int n_comands = 12;
+    const struct Comand arr[12] = {
                                     { "push", PUSH }, { "HLT" , HLT }, { "add", ADD },
                                     { "mul" , MUL  }, { "sqrt", SQRT}, { "sin", SIN },
                                     { "cos" , COS  }, { "div" , DIV }, { "sub", SUB },
-                                    { "in"  , IN   }, { "out" , OUT }
+                                    { "in"  , IN   }, { "out" , OUT }, { "pop", POP }
                                   };
 };                            // remove
 
