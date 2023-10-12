@@ -19,20 +19,31 @@
     //free ( Stack.str );
     StackDtor ( Stack.str, Stack.size_stack );
 
-    //StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity );
+    StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity );
 
     //StackHash ( &Stack.canary_left,  &Stack.canary_right );
 
     return 0;
-}   */
+}     */
 
 // stackResize
 char_t * StackCtor ( const int size_stack )   //void enum
 {
-    char_t *str_begine = (char_t *)calloc ( size_stack + sizeof(long long) * 2, sizeof ( char_t ) );   //free
+    Stack_Data_t Stack = {};
+    char_t *str_begin = (char_t *)calloc ( size_stack + (sizeof(long)/sizeof(char_t)) * 2, sizeof ( char_t ) );   //free
     // str_begin == nullptr
     // StackRealloc()
-    char_t *str = str_begine + sizeof ( long long );
+    if ( sizeof ( char_t) == 4 || sizeof ( char_t) == 8 ) {
+        *str_begin = Stack.canary_left;
+        *(str_begin + size_stack * sizeof ( char_t) + sizeof(long) ) = Stack.canary_right;
+    }
+    /*else if ( sizeof(char_t) == 1 ) {
+        str_begin[0] = 0xD;
+        str_begin[1] = 0xE;
+        str_begin[2] = 0xD;
+    }  */
+
+    char_t *str = str_begin + sizeof (long );
 
     return str;
 $
@@ -43,9 +54,15 @@ char_t* StackRedistribute ( char_t *str, int size_stack )
                                                 //#warning no canary
     // int main()
     //realloc
-$   char_t *ptr_begine = (char_t *)calloc( size_stack, sizeof ( char_t ) );   //free
     // callloc == nullptr
-$   char_t *ptr = ptr_begine;
+    Stack_Data_t Stack = {};
+    char_t *ptr_begin = (char_t *)calloc ( size_stack + (sizeof(long)/sizeof(char_t)) * 2, sizeof ( char_t ) );   //free
+
+    if ( sizeof ( char_t) == 4 || sizeof ( char_t) == 8 ) {
+        *ptr_begin = Stack.canary_left;
+        *(ptr_begin + size_stack * sizeof ( char_t) + sizeof(long) ) = Stack.canary_right;
+    }
+$   char_t *ptr = ptr_begin + sizeof ( long );
 
 $   //memset ( ptr, 0, size_stack * sizeof ( char_t ) ); // ptr + capacity
 
@@ -77,7 +94,7 @@ int StackDtor ( char_t *stack, size_t size_stack )      // plus errors check
 {
     assert ( stack != nullptr );
 
-$   memset ( stack, 0, size_stack * sizeof ( char_t ) ) ;
+$   memset ( stack - sizeof ( long ), 3, size_stack * sizeof ( char_t ) + sizeof( long) * 2 ) ;
 
     free ( stack );// sizeof ( canary )
 
@@ -112,17 +129,16 @@ char_t StackPop ( char_t *stack, int *capacity  )
 
 
 // test.cpp
-/*void StackCreator ( FILE *f, int *capacity, int *size_stack, char_t *str[], int n_lines  )    // *
+void StackCreator ( FILE *f, int *capacity, int *size_stack, char_t *str[], int n_lines  )    // *
 {
     char_t c = 0;
-    for ( int i = 0; i < n_lines; ++ i ) {
-        fscanf ( f, SPECIFIER, &c );
+    for ( int i = 0; ( c = getchar()) != '\n'; ++ i ) {
         ++*capacity;
         StackDump ( *str, __PRETTY_FUNCTION__, __FILE__, *size_stack, *capacity );
-$       StackPush ( str, c, size_stack, *capacity );
+$       StackPush ( str, c, size_stack, capacity );
 $       //StackPop ( *str + i, *stack_data + i );
     }
-}  */
+}
 
 int StackHash ( void *begin_stack, void *end_stack ) // struc Stack
 {
@@ -153,6 +169,7 @@ int Verificator ( const char_t *str, size_t size_stack,
         (*error_indificate ) | ( (*error_indificate) | 1 << 0 );//enum
     }
 }
+
 
 
 

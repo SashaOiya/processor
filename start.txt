@@ -1,9 +1,3 @@
-in;
-pop rax;
-in;
-pop rbx;
-in;
-pop rcx;
 push 4; lox
 in;
 mul;

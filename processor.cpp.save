@@ -106,14 +106,14 @@ int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers )
             switch ( registers ) {
                 case RAX : {
 
-    */
+
 
     return arg_indicator;
 }
 
 int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f )   // return error
 {
-    for ( int i = 0, arg_indicator = 0, command = 0, registers = 0; i < Vm_spu.n_comands * 2; ++i ) {
+    for ( int i = 0, arg_indicator = 0, command = 0, registers; i < Vm_spu.n_comands * 2; ++i ) {
         char_t value = 0;
         fscanf ( file_f, "%d", &command );        //error
         fscanf ( file_f, "%d", &registers );

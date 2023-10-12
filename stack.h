@@ -1,8 +1,8 @@
 #ifndef STACK
 #define STACK
 
-typedef float char_t;
-#define SPECIFIER "%g"
+typedef char char_t;
+#define SPECIFIER "%c"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,14 +31,12 @@ typedef long long canary_t;
 
 // #ifdef CANARY_PROTECTION
 struct Stack_Data_t {
-#ifdef CANARY
-    long long canary_left   = 0xDED0F;
-#endif
-    char_t *str_begine        = 0;
-    char_t *str               = 0;             //free
+    long canary_left    = 0xDED;
+    long canary_right   = 0xDED;
+    char_t *str_begine      = 0;
+    char_t *str             = 0;             //free
     int capacity            = 0;
     int size_stack          = 2;
-    long long canary_right  = 0xDED0F;
 };
 
 char_t * StackCtor ( const int size_stack );

@@ -1,14 +1,14 @@
 #include "assembler.h"
 #include "stack.h"
 
-/*int main ()
+int main ()
 {
     int n_comands = 0;
 
     Assembler ( &n_comands );
 
     return 0;
-}   */
+}
 
 FILE* Assembler ( int *n_comands )
 {
@@ -89,8 +89,8 @@ int Split ( Text_t *Text, FILE *code_f, Comand_Code CC, char *buffer )
                 if ( *( buffer + j + 1 ) == 'r' &&
                      *( buffer + j + 3 ) == 'x' &&
                      *( buffer + j + 4 ) == '\0' ) {
-                    Text->line_array[i].registerr = *( buffer + j + 2 ) - 96;
-                    Text->line_array[i].element = 0;
+                    Text->line_array[i].registerr = 1;
+                    Text->line_array[i].element = ;
                 }
                 else {
                     Text->line_array[i].registerr = 0;

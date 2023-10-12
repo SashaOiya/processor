@@ -1,5 +1,5 @@
 #ifndef PROCESSOR
-#define PROCESSOR
+#define PROCESSOR 
 
 #include <stdio.h>
 #include "comand_code.h"
@@ -12,14 +12,14 @@ struct Vm_t {
 };
 
 enum Arg_Indicator {
-    ARG_END     ,
-    ARG_INPUT   ,
-    ARG_OUTPUT  ,
+    ARG_END,
+    ARG_INPUT,
+    ARG_OUTPUT,
     ARG_INPUT_IN,
     ARG_ERROR
 };
 
-int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers );
+int Processing ( int command, Stack_Data_t *Stack, char_t value );
 int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f );
 
 #endif // PROCESSOR
