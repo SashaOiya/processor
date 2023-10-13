@@ -1,9 +1,15 @@
-push 4; lox
 in;
+pop rax;
+in;
+pop rbx;
+in;
+pop rcx;
+push rbx; lox
+push rbx;
 mul;
 push 4; meow
-in; 
-in; 
+push rax; 
+push rcx; 
 mul;
 mul;
 sub;

@@ -1,8 +1,8 @@
 #ifndef STACK
 #define STACK
 
-typedef char char_t;
-#define SPECIFIER "%c"
+typedef float char_t;
+#define SPECIFIER "%g"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,7 +47,7 @@ int StackDtor ( char_t *stack, size_t size_stack );
 Errors_t StackPush ( char_t *str[], const char_t value, int * size_stack, int *capacity );
 char_t StackPop ( char_t *stack, int *capacity );
 void StackCreator ( FILE *f, int *capacity, int *size_stack, char_t *str[], int n_lines  );
-int StackHash ( void *begin_stack, void *end_stack );
+int StackHash ( long *begin_stack, long *end_stack );
 int Verificator ( const char_t *str, size_t size_stack,
                   const size_t capacity, int *error_indificate );
 
