@@ -10,13 +10,19 @@ $
 
     StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity );
 
-    Assembler ( &Vm_spu.n_comands );
+    const int file_size = Assembler ( &Vm_spu.n_comands );     //
+    int sum_start = StackHash ( &Stack );
 
+    char_t *buffer = (char_t*)calloc(file_size, sizeof ( char_t));  //
     FILE *file_f = fopen ( "code.txt", "r" );
-    int sum = StackHash ( &Stack.canary_left,  &Stack.canary_right );
-    printf ("%d\n", sum);
+    /*fread ( buffer, sizeof( buffer[0] ), file_size, file_f );    //return value
 
-    if ( Processor ( Vm_spu, &Stack, file_f, &Register ) == -1 ) {
+    for ( int i = 0; i < Vm_spu.n_comands * 3; ++ i ) {
+        printf ( SPECIFIER, buffer[i] );
+    }   */
+    //buffer[file_size] = '\n';
+
+    if ( Processor ( Vm_spu, &Stack, buffer, &Register, &sum_start, file_f ) == -1 ) {   // - sum-start
 
         return -1;
     }
@@ -129,13 +135,23 @@ int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, 
     return arg_indicator;
 }
 
-int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Register )   // return error
+int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, char_t *buffer, Register_t *Register, int *sum_start, FILE * file_f )   // return error
 {
+    int error_indicator = 0;
+
+    //int sum = StackHash ( Stack );
+
     for ( int i = 0, arg_indicator = 0, command = 0, registers = 0; i < Vm_spu.n_comands * 2; ++i ) {
+        //Verificator ( Stack, &error_indicator, &sum );
+
         char_t value = 0;
         fscanf ( file_f, "%d", &command );        //error
+        //command = ((int*)buffer)[i+0];
+        printf ( "%d\n", command );
         fscanf ( file_f, "%d", &registers );
+        //registers = buffer[i+1];
         fscanf ( file_f, SPECIFIER, &value );
+        //value = buffer[i+2];
 
         arg_indicator = Processing ( command, Stack, value, registers, Register );
 
@@ -144,6 +160,8 @@ int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Reg
             return -1;
         }
 
-        StackDump ( Stack->str, INFORMATION , Stack->size_stack, Stack->capacity );
+        //StackDump ( Stack->str, INFORMATION , Stack->size_stack, Stack->capacity );
     }
+
+    return 0;//
 }
