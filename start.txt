@@ -1,17 +1,9 @@
 in;
 pop rax;
-in;
-pop rbx;
-in;
-pop rcx;
-push rbx; lox
-push rbx;
+:start;
+push rax;
+push 5;
 mul;
-push 4; meow
-push rax; 
-push rcx; 
-mul;
-mul;
-sub;
+jmp;
 out;
-HLT;
+hlt;

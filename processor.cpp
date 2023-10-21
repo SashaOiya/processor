@@ -1,4 +1,6 @@
 #include "processor.h"
+#include <ctype.h>
+
 
 int main ()
 {
@@ -10,19 +12,21 @@ $
 
     StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity );
 
-    const int file_size = Assembler ( &Vm_spu.n_comands );     //
-    int sum_start = StackHash ( &Stack );
+    int file_size  = Assembler ( &Vm_spu.n_comands );
 
-    char_t *buffer = (char_t*)calloc(file_size, sizeof ( char_t));  //
-    FILE *file_f = fopen ( "code.txt", "r" );
-    /*fread ( buffer, sizeof( buffer[0] ), file_size, file_f );    //return value
+    FILE *file_f = fopen ( "code.txt", "rb" );
+    char_t *RAM = (char_t*)calloc(file_size, sizeof ( char_t));
 
-    for ( int i = 0; i < Vm_spu.n_comands * 3; ++ i ) {
-        printf ( SPECIFIER, buffer[i] );
-    }   */
-    //buffer[file_size] = '\n';
+    for ( int j = 0; j < Vm_spu.n_comands * 2; ++j ) {
+        fscanf ( file_f, "%g", &RAM[j*3+0] );        //error
+        fscanf ( file_f, "%g", &RAM[j*3+1] );
+        fscanf ( file_f, SPECIFIER, &RAM[j*3+2] );
+    }
+    /*for ( int i = 0; i < Vm_spu.n_comands * 3 ; ++i ) {
+        printf ( "%g\n", RAM[i] );
+    } */
 
-    if ( Processor ( Vm_spu, &Stack, buffer, &Register, &sum_start, file_f ) == -1 ) {   // - sum-start
+    if ( Processor ( Vm_spu, &Stack, file_f, &Register, RAM ) == -1 ) {
 
         return -1;
     }
@@ -34,7 +38,7 @@ $
     return 0;
 }
 
-int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, Register_t *Register )
+int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, Register_t *Register, int *ip )
 {
     int arg_indicator = 0;
 
@@ -109,11 +113,13 @@ int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, 
             break;
         case SUB  : {
                 arg_indicator = ARG_OUTPUT;
-                char_t temp = (-1) * ( StackPop( Stack->str, &Stack->capacity ) - StackPop( Stack->str, &Stack->capacity ) );
+                char_t a = StackPop( Stack->str, &Stack->capacity );
+                char_t b = StackPop( Stack->str, &Stack->capacity );
+                char_t temp = b - a;
                 StackPush( &Stack->str, temp, &Stack->size_stack, &Stack->capacity );
             }
             break;
-        case IN   : {
+       case IN   : {
                 arg_indicator = ARG_INPUT_IN;
                 char_t value = 0;
                 printf ( "input your value : " );
@@ -121,13 +127,25 @@ int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, 
                 StackPush( &Stack->str, value, &Stack->size_stack, &Stack->capacity );
             }
             break;
-        case OUT  : {
+       case OUT  : {
                 arg_indicator = ARG_OUTPUT;
                 StackPop( Stack->str, &Stack->capacity );
                 //printf ??
             }
             break;
-        default   :
+       case START: {
+        //printf ( "ip %d\n", *ip );
+                arg_indicator = ARG_OUTPUT;
+                Register->rbx = (*ip + 1 ) * 3;//
+                //printf ( "%g\n", Register->rbx );
+            }
+           break;
+       case JMP : {
+               arg_indicator = ARG_OUTPUT;
+                *ip = (int) (Register->rbx) / 3;
+            }
+            break;
+       default :
             arg_indicator = ARG_ERROR;
             break; //error
     }
@@ -135,33 +153,19 @@ int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, 
     return arg_indicator;
 }
 
-int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, char_t *buffer, Register_t *Register, int *sum_start, FILE * file_f )   // return error
+int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Register, char_t *RAM )   // return error
 {
-    int error_indicator = 0;
+    for ( int j = 0, arg_indicator = 0; j < Vm_spu.n_comands * 2; ++j ) {
 
-    //int sum = StackHash ( Stack );
+        //printf ( "%g\n", RAM[j*3] );
 
-    for ( int i = 0, arg_indicator = 0, command = 0, registers = 0; i < Vm_spu.n_comands * 2; ++i ) {
-        //Verificator ( Stack, &error_indicator, &sum );
-
-        char_t value = 0;
-        fscanf ( file_f, "%d", &command );        //error
-        //command = ((int*)buffer)[i+0];
-        printf ( "%d\n", command );
-        fscanf ( file_f, "%d", &registers );
-        //registers = buffer[i+1];
-        fscanf ( file_f, SPECIFIER, &value );
-        //value = buffer[i+2];
-
-        arg_indicator = Processing ( command, Stack, value, registers, Register );
+        arg_indicator = Processing ( RAM[j*3+0], Stack, RAM[j*3+2], RAM[j*3+1], Register, &j );
 
         if ( arg_indicator == ARG_END ) {
 
             return -1;
         }
 
-        //StackDump ( Stack->str, INFORMATION , Stack->size_stack, Stack->capacity );
+        StackDump ( Stack->str, INFORMATION , Stack->size_stack, Stack->capacity );
     }
-
-    return 0;//
 }

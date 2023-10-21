@@ -40,7 +40,7 @@ enum Register {
 };
 
 int Assembler ( int *n_comands );
-int Compare ( char_t *otput_buffer, FILE *code, Comand_Code cc, char *start, float ptr_elements, int registerr );
+int Compare ( FILE *code, Comand_Code cc, char *start, float ptr_elements, int registerr );
 int GetFileSize ( FILE * f );
 int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f );
 int Split ( Text_t *Text, FILE *code_f, Comand_Code CC, char *buffer );

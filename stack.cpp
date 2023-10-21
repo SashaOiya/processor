@@ -24,7 +24,7 @@
     //StackHash ( &Stack.canary_left,  &Stack.canary_right );
 
     return 0;
-}   */
+}  */
 
 // stackResize
 char_t * StackCtor ( const int size_stack )   //void enum
@@ -116,8 +116,8 @@ char_t StackPop ( char_t *stack, int *capacity  )
 }
 
 
-// test.cpp
-/*void StackCreator ( FILE *f, int *capacity, int *size_stack, char_t *str[], int n_lines  )    // *
+/*// test.cpp
+void StackCreator ( FILE *f, int *capacity, int *size_stack, char_t *str[], int n_lines  )    // *
 {
     char_t c = 0;
     for ( int i = 0; i < n_lines; ++ i ) {
@@ -129,34 +129,42 @@ $       //StackPop ( *str + i, *stack_data + i );
     }
 }  */
 
-int StackHash ( long *begin_stack, long *end_stack ) // struc Stack
+int StackHash ( Stack_Data_t *Stack )
 {
-    // char * usuc = ( char *)
-    int size_stack = end_stack - begin_stack;   // sizeof ( stack)
+    //int size = &Stack->canary_left - &Stack->canary_right;   // sizeof ( stack)
     long sum  = 0;
+    int canary_size = sizeof ( Stack->canary_left);
 
-    for ( int i = 0; i < size_stack; ++i ) {
-        sum += *( begin_stack + i );
+    for ( int i = 0; i < canary_size; ++i ) {
+        sum += *( &Stack->canary_left + i );
     }
-
-    /*printf ("%d\n", size_stack);
-    printf ("%lld\n", sum );   */
 
     return sum;
 }
                                                                       //switch
-int Verificator ( const char_t *str, size_t size_stack,
-                  const size_t capacity, int *error_indificate )   // struct
+void Verificator ( Stack_Data_t *Stack, int *error_indificate, int *start_sum )   // struct
 {
-    if ( str == nullptr ) {
-        (*error_indificate ) | ( (*error_indificate) | 1 << 2 );
-    }
-    if ( size_stack < 0 || size_stack < capacity ) {
-        (*error_indificate ) | ( (*error_indificate) | 1 << 1 );
-    }
-    if ( capacity < 0 ) {
+    //int sum = StackHash ( Stack );
+
+    if ( Stack->capacity < 0 ) {
         (*error_indificate ) | ( (*error_indificate) | 1 << 0 );//enum
+        printf ( "Capacity error\n" );
     }
+    if ( Stack->size_stack < 0 || Stack->size_stack < Stack->capacity ) {
+        (*error_indificate ) | ( (*error_indificate) | 1 << 1 );
+        printf ( "Size error\n" );
+    }
+    if ( Stack->str == nullptr ) {
+        (*error_indificate ) | ( (*error_indificate) | 1 << 2 );
+        printf ( "Buffer error\n" );
+    }
+    /*if ( sum != *start_sum ) {
+        (*error_indificate ) | ( (*error_indificate) | 1 << 3 );
+        printf ( "Hash error\n" );
+    }  */
+    /*printf ( "%d\n", sum );
+    printf ( "%d\n", *start_sum );
+    *start_sum = sum;  */
 }
 
 

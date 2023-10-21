@@ -30,10 +30,9 @@ struct Error_t {        // typedef
 typedef long long canary_t;
 
 // #ifdef CANARY_PROTECTION
-struct Stack_Data_t {
+struct Stack_Data_t {          // Stack_t
     long canary_left    = 0xDED;
     long canary_right   = 0xDED;
-    char_t *str_begine      = 0;
     char_t *str             = 0;             //free
     int capacity            = 0;
     int size_stack          = 2;
@@ -47,8 +46,7 @@ int StackDtor ( char_t *stack, size_t size_stack );
 Errors_t StackPush ( char_t *str[], const char_t value, int * size_stack, int *capacity );
 char_t StackPop ( char_t *stack, int *capacity );
 void StackCreator ( FILE *f, int *capacity, int *size_stack, char_t *str[], int n_lines  );
-int StackHash ( long *begin_stack, long *end_stack );
-int Verificator ( const char_t *str, size_t size_stack,
-                  const size_t capacity, int *error_indificate );
+int StackHash ( Stack_Data_t *Stack );
+void Verificator ( Stack_Data_t *Stack, int *error_indificate, int *start_sum );
 
 #endif //STACK
