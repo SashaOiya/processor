@@ -8,12 +8,12 @@
     Assembler ( &n_comands );
 
     return 0;
-}*/
+} */
 
 int Assembler ( int *n_comands )
 {
-    FILE *comand_f = fopen ( "start.txt", "r" );
-    FILE *code_f   = fopen ( "code.txt", "w" );
+    FILE *comand_f = fopen ( "start.txt", "rb" );
+    FILE *code_f   = fopen ( "code.txt", "wb" );
 
     Comand_Code CC = {};
     Text_t Text    = {};
@@ -44,13 +44,16 @@ int GetFileSize ( FILE * f )
     return sizet;
 }
 
-int Compare ( FILE *code, Comand_Code cc, char *start, float ptr_elements, int registerr )
+int Compare ( FILE *code, Comand_Code cc, char *start, float ptr_elements, int registerr, char_t *output_buffer )
 {
 $   for ( int i = 0; i < cc.n_comands; ++i ) {
 $       if ( strcmp ( start, cc.arr[i].str ) == 0 ) {
-$           fprintf ( code, "%d ", cc.arr[i].code );
-            fprintf ( code, "%d ", registerr );
-            fprintf ( code, "%g\n", ptr_elements );
+$           //fprintf ( code, "%d ", cc.arr[i].code );
+            //fprintf ( code, "%d ", registerr );
+            //fprintf ( code, "%g\n", ptr_elements );
+            output_buffer[0] = cc.arr[i].code;
+            output_buffer[1] = registerr;
+            output_buffer[2] = ptr_elements;
 $
 $           break;
         }
@@ -76,7 +79,10 @@ int Split ( Text_t *Text, FILE *code_f, Comand_Code CC, char *buffer )
         }
     }
 
+    //char_t *output_buffer = ( char_t *)calloc ( Text->file_size + 1, sizeof ( char_t ) );
+
     Text->line_array = ( Line_t *)calloc ( Text->n_lines, sizeof ( Line_t) );
+    char_t *output_buffer = ( char_t *)calloc ( Text->file_size + 1, sizeof ( char_t ) );
 
     for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
         int len = 0;
@@ -111,6 +117,16 @@ int Split ( Text_t *Text, FILE *code_f, Comand_Code CC, char *buffer )
         while ( buffer[j] != '\n' ) {
             ++j;
         }
-        Compare ( code_f, CC, Text->line_array[i].start, Text->line_array[i].element, Text->line_array[i].registerr );
+        Compare ( code_f, CC, Text->line_array[i].start, Text->line_array[i].element, Text->line_array[i].registerr, &output_buffer[3*i] );
     }
+
+    /*for ( int i = 0; i < 10; ++i ) {
+        printf ( "%g\n", output_buffer[i] );
+    } */
+    printf ( "%d\n", Text->n_lines );
+    printf ( "%d\n", Text->n_lines * 3 );
+    fwrite ( output_buffer, sizeof (float), Text->n_lines * 3, code_f );
 }
+
+
+

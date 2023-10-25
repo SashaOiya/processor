@@ -48,5 +48,6 @@ char_t StackPop ( char_t *stack, int *capacity );
 void StackCreator ( FILE *f, int *capacity, int *size_stack, char_t *str[], int n_lines  );
 int StackHash ( Stack_Data_t *Stack );
 void Verificator ( Stack_Data_t *Stack, int *error_indificate, int *start_sum );
+int GetFileSize ( FILE * f );
 
 #endif //STACK

@@ -1,5 +1,6 @@
 #include "processor.h"
 #include <ctype.h>
+#include <assert.h>
 
 
 int main ()
@@ -17,14 +18,18 @@ $
     FILE *file_f = fopen ( "code.txt", "rb" );
     char_t *RAM = (char_t*)calloc(file_size, sizeof ( char_t));
 
-    for ( int j = 0; j < Vm_spu.n_comands * 2; ++j ) {
+    assert ( RAM != nullptr );
+    printf ( " LOOOOOOOOOOOOOOOOOOOOOX %d\n", file_size);
+    fread ( RAM, sizeof(float), Vm_spu.n_comands * 3, file_f );
+    /*for ( int j = 0; j < Vm_spu.n_comands * 2; ++j ) {
         fscanf ( file_f, "%g", &RAM[j*3+0] );        //error
         fscanf ( file_f, "%g", &RAM[j*3+1] );
         fscanf ( file_f, SPECIFIER, &RAM[j*3+2] );
-    }
-    /*for ( int i = 0; i < Vm_spu.n_comands * 3 ; ++i ) {
-        printf ( "%g\n", RAM[i] );
     } */
+    assert ( RAM != nullptr );
+    for ( int i = 0; i < Vm_spu.n_comands * 3 ; ++i ) {
+        printf ( "%g\n", RAM[i] );
+    }
 
     if ( Processor ( Vm_spu, &Stack, file_f, &Register, RAM ) == -1 ) {
 
@@ -136,13 +141,14 @@ int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, 
        case START: {
         //printf ( "ip %d\n", *ip );
                 arg_indicator = ARG_OUTPUT;
-                Register->rbx = (*ip + 1 ) * 3;//
+                Register->rbx = (*ip ) * 3 ;//
                 //printf ( "%g\n", Register->rbx );
             }
            break;
        case JMP : {
                arg_indicator = ARG_OUTPUT;
-                *ip = (int) (Register->rbx) / 3;
+                *ip = (int) (Register->rbx) / 3 + 1;
+                //StackDump ( Stack->str, INFORMATION , Stack->size_stack, Stack->capacity );
             }
             break;
        default :
@@ -155,7 +161,7 @@ int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, 
 
 int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Register, char_t *RAM )   // return error
 {
-    for ( int j = 0, arg_indicator = 0; j < Vm_spu.n_comands * 2; ++j ) {
+    for ( int j = 0, arg_indicator = 0; j < Vm_spu.n_comands; ++j ) {
 
         //printf ( "%g\n", RAM[j*3] );
 
@@ -166,6 +172,6 @@ int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Reg
             return -1;
         }
 
-        StackDump ( Stack->str, INFORMATION , Stack->size_stack, Stack->capacity );
+        //StackDump ( Stack->str, INFORMATION , Stack->size_stack, Stack->capacity );
     }
 }
