@@ -1,14 +1,14 @@
 #include "assembler.h"
 #include "stack.h"
 
-/*int main ()
+int main ()
 {
     int n_comands = 0;
 
     Assembler ( &n_comands );
 
     return 0;
-} */
+}
 
 int Assembler ( int *n_comands )
 {
@@ -120,11 +120,11 @@ int Split ( Text_t *Text, FILE *code_f, Comand_Code CC, char *buffer )
         Compare ( code_f, CC, Text->line_array[i].start, Text->line_array[i].element, Text->line_array[i].registerr, &output_buffer[3*i] );
     }
 
-    /*for ( int i = 0; i < 10; ++i ) {
+    /*for ( int i = 0; i < Text->n_lines * 3 ; ++i ) {
         printf ( "%g\n", output_buffer[i] );
-    } */
-    printf ( "%d\n", Text->n_lines );
-    printf ( "%d\n", Text->n_lines * 3 );
+    }  */
+    //printf ( "%d\n", Text->n_lines );
+    //printf ( "%d\n", Text->n_lines * 3 );
     fwrite ( output_buffer, sizeof (float), Text->n_lines * 3, code_f );
 }
 

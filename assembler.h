@@ -28,9 +28,10 @@ struct Text_t {
 };
 
 struct Register_t {
-    char_t rax = 0;
-    char_t rbx = 0;
-    char_t rcx = 0;
+    char_t rax =  0;
+    char_t rbx =  0;
+    char_t rcx =  0;
+    char_t rdx = -1;
 };
 
 enum Register {

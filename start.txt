@@ -4,6 +4,6 @@ pop rax;
 push rax;
 push 5;
 mul;
-jmp;
+ja 4;
 out;
 hlt;

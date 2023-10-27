@@ -2,20 +2,26 @@
 #define COMAND_CODE
 
 enum Code {
-    PUSH,
-    HLT ,
-    ADD ,
-    MUL ,
-    SQRT,
-    SIN ,
-    COS ,
-    DIV ,
-    SUB ,
-    IN  ,
-    OUT ,
-    POP ,
-    JMP ,
-    START
+    PUSH  =  0,
+    HLT   =  1,
+    ADD   =  2,
+    MUL   =  3,
+    SQRT  =  4,
+    SIN   =  5,
+    COS   =  6,
+    DIV   =  7,
+    SUB   =  8,
+    IN    =  9,
+    OUT   = 10,
+    POP   = 11,
+    START = 12,
+    JMP   = 13,
+    JA    = 14,
+    JAE   = 15,
+    JB    = 16,
+    JBE   = 17,
+    JE    = 18,
+    JNE   = 19
 };
 
 struct Comand {
@@ -24,13 +30,15 @@ struct Comand {
 };
 
 struct Comand_Code { // remove    // this is krivo!!!
-    const int n_comands = 14;
-    const struct Comand arr[14] = {
-                                    { "push", PUSH }, { "hlt" , HLT }, { "add", ADD },
-                                    { "mul" , MUL  }, { "sqrt", SQRT}, { "sin", SIN },
-                                    { "cos" , COS  }, { "div" , DIV }, { "sub", SUB },
-                                    { "in"  , IN   }, { "out" , OUT }, { "pop", POP },
-                                    { "jmp" , JMP  }, { ":start", START }
+    const int n_comands = 20;
+    const struct Comand arr[20] = {
+                                    { "push"  , PUSH  }, { "hlt", HLT }, { "add", ADD },
+                                    { "mul"   , MUL   }, { "sqrt", SQRT}, { "sin", SIN },
+                                    { "cos"   , COS   }, { "div", DIV }, { "sub", SUB },
+                                    { "in"    , IN    }, { "out", OUT }, { "pop", POP },
+                                    { ":start", START }, { "jmp", JMP }, { "ja", JA  },
+                                    { "jae", JAE   }, { "jb", JB  }, { "jbe", JBE },
+                                    { "je", JE    }, { "jne", JNE }
                                   };
 };                            // remove
 

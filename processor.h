@@ -12,15 +12,17 @@ struct Vm_t {
 };
 
 enum Arg_Indicator {
-    ARG_END     ,
-    ARG_INPUT   ,
-    ARG_OUTPUT  ,
-    ARG_INPUT_IN,
-    ARG_ERROR
+    ARG_END      = -1,
+    ARG_INPUT    = 0,
+    ARG_OUTPUT   = 1,
+    ARG_INPUT_IN = 2,
+    ARG_FUNC     = 3,
+    ARG_ERROR    = 4
 };
 
 int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Register, char_t *buffer );
-int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, Register_t *Register, int *ip );
+int Processing ( int command, Stack_Data_t *Stack, char_t value,
+                 int registers, Register_t *Register, int *ip, int arg_indicator );
 int GetFileSize ( FILE *f);
 
 #endif // PROCESSOR

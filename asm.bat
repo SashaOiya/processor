@@ -1,1 +1,1 @@
-g++ assembler.cpp stack.cpp processor.cpp
+g++ stack.cpp processor.cpp
