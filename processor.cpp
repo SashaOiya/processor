@@ -11,27 +11,15 @@ int main ()
 $
     Stack.str = StackCtor ( Stack.size_stack );
 
-    StackDump ( Stack.str, INFORMATION , Stack.size_stack, Stack.capacity );
-
-    //int file_size  = Assembler ( &Vm_spu.n_comands );
-    //printf ( "%d\n", file_size );
     FILE *file_f = fopen ( "code.txt", "rb" );
     int file_size = GetFileSize ( file_f ) / 4 + 1;
-    printf ( "%d\n", file_size );
     Vm_spu.n_comands = ( file_size - 1 ) / 3;
 
-    char_t *RAM = (char_t*)calloc(file_size, sizeof ( char_t));
+    elem_t *RAM = (elem_t *)calloc(file_size, sizeof ( elem_t ) );
     //fclose ( file_f2 );
-
-    //FILE *file_f = fopen ( "code.txt", "rb" );
     assert ( RAM != nullptr );
-    //printf ( " LOOOOOOOOOOOOOOOOOOOOOX %d\n", file_size);
-    fread ( RAM, sizeof(float), Vm_spu.n_comands * 3, file_f );
-    /*for ( int j = 0; j < Vm_spu.n_comands * 2; ++j ) {
-        fscanf ( file_f, "%g", &RAM[j*3+0] );        //error
-        fscanf ( file_f, "%g", &RAM[j*3+1] );
-        fscanf ( file_f, SPECIFIER, &RAM[j*3+2] );
-    } */
+
+    fread ( RAM, sizeof( elem_t ), Vm_spu.n_comands * 3, file_f );
     assert ( RAM != nullptr );
     /*for ( int i = 0; i < Vm_spu.n_comands * 3 ; ++i ) {
         printf ( "%g\n", RAM[i] );
@@ -60,7 +48,7 @@ int GetFileSize ( FILE * f )
     return sizet;
 }
 
-int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, Register_t *Register, int *ip, int arg_indicator )
+int Processing ( int command, Stack_Data_t *Stack, elem_t value, int registers, Register_t *Register, int *ip, int arg_indicator )
 {
     //int arg_indicator = 0;
 
@@ -81,16 +69,16 @@ int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, 
         case PUSH : {
             //arg_indicator = ARG_INPUT;
             if ( registers == RAX ) {
-                StackPush( &Stack->str, Register->rax, &Stack->size_stack, &Stack->capacity );
+                StackPush( Stack, Register->rax );
             }
             else if ( registers == RBX ) {
-                 StackPush( &Stack->str, Register->rbx, &Stack->size_stack, &Stack->capacity );
+                 StackPush( Stack, Register->rbx );
             }
             else if ( registers == RCX ) {
-                 StackPush( &Stack->str, Register->rcx, &Stack->size_stack, &Stack->capacity );
+                 StackPush( Stack, Register->rcx );
             }
             else {
-                StackPush( &Stack->str, value, &Stack->size_stack, &Stack->capacity );
+                StackPush( Stack, value );
             }
             }
             break;
@@ -99,54 +87,54 @@ int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, 
             break;
         case ADD  : {
                 //arg_indicator = ARG_OUTPUT;
-                char_t temp = StackPop( Stack->str, &Stack->capacity ) + StackPop( Stack->str, &Stack->capacity );
-                StackPush( &Stack->str, temp, &Stack->size_stack, &Stack->capacity );
+                elem_t temp = StackPop( Stack->str, &Stack->capacity ) + StackPop( Stack->str, &Stack->capacity );
+                StackPush( Stack, temp );
             }
             break;
         case MUL : {
                 //arg_indicator = ARG_OUTPUT;
-                char_t temp = StackPop( Stack->str, &Stack->capacity ) * StackPop( Stack->str, &Stack->capacity );
-                StackPush( &Stack->str, temp, &Stack->size_stack, &Stack->capacity );
+                elem_t temp = StackPop( Stack->str, &Stack->capacity ) * StackPop( Stack->str, &Stack->capacity );
+                StackPush( Stack, temp );
             }
             break;
         case SQRT : {
                 //arg_indicator = ARG_OUTPUT;
-                char_t temp = StackPop( Stack->str, &Stack->capacity );
-                StackPush( &Stack->str, sqrt ( temp ), &Stack->size_stack, &Stack->capacity );
+                elem_t temp = StackPop( Stack->str, &Stack->capacity );
+                StackPush( Stack, sqrt ( temp ) );
             }
             break;
         case SIN  : {
                 //arg_indicator = ARG_OUTPUT;
-                char_t temp = StackPop( Stack->str, &Stack->capacity );
-                StackPush( &Stack->str, sin ( temp ), &Stack->size_stack, &Stack->capacity );
+                elem_t temp = StackPop( Stack->str, &Stack->capacity );
+                StackPush( Stack, sin ( temp ) );
             }
             break;
         case COS  : {
                 //arg_indicator = ARG_OUTPUT;
-                char_t temp = StackPop( Stack->str, &Stack->capacity );
-                StackPush( &Stack->str, cos ( temp ), &Stack->size_stack, &Stack->capacity );
+                elem_t temp = StackPop( Stack->str, &Stack->capacity );
+                StackPush( Stack, cos ( temp ) );
             }
             break;
         case DIV  : {
                 //arg_indicator = ARG_OUTPUT;
-                char_t temp = StackPop( Stack->str, &Stack->capacity ) / StackPop( Stack->str, &Stack->capacity );
-                StackPush( &Stack->str, temp, &Stack->size_stack, &Stack->capacity );
+                elem_t temp = StackPop( Stack->str, &Stack->capacity ) / StackPop( Stack->str, &Stack->capacity );
+                StackPush( Stack, temp );
             }
             break;
         case SUB  : {
                 //arg_indicator = ARG_OUTPUT;
-                char_t a = StackPop( Stack->str, &Stack->capacity );
-                char_t b = StackPop( Stack->str, &Stack->capacity );
-                char_t temp = b - a;
-                StackPush( &Stack->str, temp, &Stack->size_stack, &Stack->capacity );
+                elem_t a = StackPop( Stack->str, &Stack->capacity );
+                elem_t b = StackPop( Stack->str, &Stack->capacity );
+                elem_t temp = b - a;
+                StackPush( Stack, temp );
             }
             break;
        case IN   : {
                 //arg_indicator = ARG_INPUT_IN;
-                char_t value = 0;
+                elem_t value = 0;
                 printf ( "input your value : " );
                 scanf ( SPECIFIER, &value );
-                StackPush( &Stack->str, value, &Stack->size_stack, &Stack->capacity );
+                StackPush( Stack, value );
             }
             break;
        case OUT  : {
@@ -155,16 +143,17 @@ int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, 
                 //printf ??
             }
             break;
-       case START: {
+       /*case START: {
         //printf ( "ip %d\n", *ip );
                 //arg_indicator = ARG_OUTPUT;
                 Register->rbx = (*ip ) * 3 ;//
                 //printf ( "%g\n", Register->rbx );
             }
-           break;
+           break; */
        case JMP : {
                //arg_indicator = ARG_OUTPUT;
-                *ip = (int) (Register->rbx) / 3 + 1;
+                *ip = value;
+                printf ( "value %d\n", value );
                 //StackDump ( Stack->str, INFORMATION , Stack->size_stack, Stack->capacity );
             }
             break;
@@ -194,7 +183,7 @@ int Processing ( int command, Stack_Data_t *Stack, char_t value, int registers, 
     return arg_indicator;
 }
 
-int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Register, char_t *RAM )   // return error
+int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Register, elem_t *RAM )   // return error
 {
     for ( int j = 0, arg_indicator = 0; j < Vm_spu.n_comands; ++j ) {
 
@@ -207,6 +196,6 @@ int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Reg
             return -1;
         }
 
-        StackDump ( Stack->str, INFORMATION , Stack->size_stack, Stack->capacity );
+        StackDump ( *Stack, INFORMATION );
     }
 }

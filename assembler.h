@@ -17,7 +17,7 @@
 
 struct Line_t {
     char *start  = nullptr;
-    float element = 0;
+    elem_t element = 0;
     int registerr = 0;
 };
 
@@ -28,10 +28,10 @@ struct Text_t {
 };
 
 struct Register_t {
-    char_t rax =  0;
-    char_t rbx =  0;
-    char_t rcx =  0;
-    char_t rdx = -1;
+    elem_t rax =  0;
+    elem_t rbx =  0;
+    elem_t rcx =  0;
+    elem_t rdx = -1;
 };
 
 enum Register {
@@ -40,10 +40,10 @@ enum Register {
     RCX = 3
 };
 
-int Assembler ( int *n_comands );
-int Compare ( FILE *code, Comand_Code cc, char *start, float ptr_elements, int registerr, char_t *output_buffer );
+void Assembler ( );
+int Compare ( Comand_Code cc, Line_t line_array, Stack_Data_t *Stack );
 int GetFileSize ( FILE * f );
 int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f );
-int Split ( Text_t *Text, FILE *code_f, Comand_Code CC, char *buffer );
+int Split ( Text_t *Text, char *buffer );
 
 #endif // ASM

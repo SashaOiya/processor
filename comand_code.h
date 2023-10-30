@@ -21,7 +21,9 @@ enum Code {
     JB    = 16,
     JBE   = 17,
     JE    = 18,
-    JNE   = 19
+    JNE   = 19,
+    CALL  = 20,
+    RET   = 21
 };
 
 struct Comand {
@@ -30,15 +32,16 @@ struct Comand {
 };
 
 struct Comand_Code { // remove    // this is krivo!!!
-    const int n_comands = 20;
-    const struct Comand arr[20] = {
-                                    { "push"  , PUSH  }, { "hlt", HLT }, { "add", ADD },
+    const int n_comands = 22;
+    const struct Comand arr[22] = {
+                                    { "push"  , PUSH  }, { "hlt", HLT  }, { "add", ADD },
                                     { "mul"   , MUL   }, { "sqrt", SQRT}, { "sin", SIN },
-                                    { "cos"   , COS   }, { "div", DIV }, { "sub", SUB },
-                                    { "in"    , IN    }, { "out", OUT }, { "pop", POP },
-                                    { ":start", START }, { "jmp", JMP }, { "ja", JA  },
-                                    { "jae", JAE   }, { "jb", JB  }, { "jbe", JBE },
-                                    { "je", JE    }, { "jne", JNE }
+                                    { "cos"   , COS   }, { "div", DIV  }, { "sub", SUB },
+                                    { "in"    , IN    }, { "out", OUT  }, { "pop", POP },
+                                    { ":"     , START }, { "jmp", JMP  }, { "ja" , JA  },
+                                    { "jae"   , JAE   }, { "jb", JB    }, { "jbe", JBE },
+                                    { "je"    , JE    }, { "jne", JNE  }, { "call"  , CALL  },
+                                    { "ret", RET }
                                   };
 };                            // remove
 
