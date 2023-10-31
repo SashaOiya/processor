@@ -48,7 +48,7 @@ int GetFileSize ( FILE * f )
     return sizet;
 }
 
-int Processing ( int command, Stack_Data_t *Stack, elem_t value, int registers, Register_t *Register, int *ip, int arg_indicator )
+int Processing ( int command, Stack_Data_t *Stack, elem_t *value, int registers, Register_t *Register, int *ip, int arg_indicator )
 {
     //int arg_indicator = 0;
 
@@ -78,12 +78,13 @@ int Processing ( int command, Stack_Data_t *Stack, elem_t value, int registers, 
                  StackPush( Stack, Register->rcx );
             }
             else {
-                StackPush( Stack, value );
+                StackPush( Stack, *value );
             }
             }
             break;
-        case HLT  :
+        case HLT  : {
             arg_indicator = ARG_END;
+            }
             break;
         case ADD  : {
                 //arg_indicator = ARG_OUTPUT;
@@ -140,24 +141,13 @@ int Processing ( int command, Stack_Data_t *Stack, elem_t value, int registers, 
        case OUT  : {
                 //arg_indicator = ARG_OUTPUT;
                 StackPop( Stack->str, &Stack->capacity );
-                //printf ??
             }
             break;
-       /*case START: {
-        //printf ( "ip %d\n", *ip );
-                //arg_indicator = ARG_OUTPUT;
-                Register->rbx = (*ip ) * 3 ;//
-                //printf ( "%g\n", Register->rbx );
-            }
-           break; */
        case JMP : {
-               //arg_indicator = ARG_OUTPUT;
-                *ip = value;
-                printf ( "value %d\n", value );
-                //StackDump ( Stack->str, INFORMATION , Stack->size_stack, Stack->capacity );
+                *ip = registers;
             }
             break;
-        case JA : {
+        /*case JA : {
                 if ( Register->rdx == 0 ) {
                     arg_indicator = ARG_OUTPUT;   //rdx
                 }
@@ -172,13 +162,24 @@ int Processing ( int command, Stack_Data_t *Stack, elem_t value, int registers, 
                     Register->rdx = Register->rdx - 1;
                 }
             }
+            break;  */
+        case RET : {
+                if ( *value == 0 ) {
+                    *value += 1;
+                }
+                else {
+                    *ip = registers;
+                }
+            }
+            break;
+        case CALL : {
+                *ip = registers;
+            }
             break;
        default :
             arg_indicator = ARG_ERROR;
             break; //error
     }
-    //printf ( "%d\n", arg_indicator );
-    //printf ( "%g\n", Register->rdx );
 
     return arg_indicator;
 }
@@ -189,7 +190,7 @@ int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Reg
 
         //printf ( "%g\n", RAM[j*3] );
 
-        arg_indicator = Processing ( RAM[j*3+0], Stack, RAM[j*3+2], RAM[j*3+1], Register, &j, arg_indicator );
+        arg_indicator = Processing ( RAM[j*3+0], Stack, &RAM[j*3+2], RAM[j*3+1], Register, &j, arg_indicator );
 
         if ( arg_indicator == ARG_END ) {
 

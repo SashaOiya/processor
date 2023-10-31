@@ -1,12 +1,9 @@
-: next;   0. //start func
-push 10; 1.
-push 5;   2.
-div;      3.
-ret;      4. //end func
-out;      5.
-in;       6. //start program
-pop rax;  7.
-call;     8.
-push 10;  9.
-mul;      10. 
-hlt;      11. //end program
+in;
+pop rax;
+push rax;
+: start;
+push 5;
+mul;
+jmp;
+out;
+hlt;
