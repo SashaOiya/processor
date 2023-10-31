@@ -1,5 +1,7 @@
 #include "assembler.h"
-#include "stack.h"
+//#include "stack.h"
+
+//void Get_Pointer ( char *ref_buffer, Stack_Data_t *Pointer, Text_t *Text, Comand_Code cc );
 
 int main () // argc argv
 {
@@ -50,6 +52,7 @@ $       if ( strcmp ( line_array.start, cc.arr[i].str ) == 0 ) {
             StackPush( Stack, cc.arr[i].code );
             if ( i == JMP || i == RET ) {
                 StackPush ( Stack, StackPop ( Pointer->str, &Pointer->capacity ) );
+                Pointer->capacity += 2;
             }
             else {
                 StackPush ( Stack, line_array.registerr );
@@ -73,6 +76,15 @@ int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f )
 
 int Split ( Text_t *Text, char *buffer )   //name FILE*
 {
+    char *ref_buffer = ( char *)calloc (  Text->file_size + 1, sizeof ( char ) );
+    strcpy ( ref_buffer, buffer );
+
+    for ( int i = 0; i <= Text->file_size; ++i ) {
+        if ( *( ref_buffer + i ) == ';' ) {
+            *( ref_buffer + i ) = '\0';
+        }
+    }
+
     for ( int i = 0; i <= Text->file_size; ++i ) {
         if ( *( buffer + i ) == ';' ) {
             ++(Text->n_lines);
@@ -90,24 +102,52 @@ int Split ( Text_t *Text, char *buffer )   //name FILE*
     int error_indificate = 0;
     Stack_Data_t Pointer  = {};
 $
-    Stack.str = StackCtor ( Stack.size_stack );
+    Stack.str   = StackCtor ( Stack.size_stack   );
     Pointer.str = StackCtor ( Pointer.size_stack );
 
-    /*for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
+    //Get_Pointer ( ref_buffer, &Pointer, Text, CC );
+    StackDump ( Pointer, INFORMATION );
+
+    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
         int len = 0;
         bool flag = false;
-        while ( buffer[j] != '\0' ) {   // flag E space   '\n'
-            if ( buffer[j] == ' ' ) {
+        while ( ref_buffer[j] != '\0' ) {   // flag E space   '\n'
+            if ( ref_buffer[j] == ' ' ) {
                 if (flag) {
                     printf("ERROR\n");
                 }
-                buffer[j] = '\0';
+                ref_buffer[j] = '\0';
                 flag = true;
-                Text->line_array[i].start = buffer + j - len;
+$               Text->line_array[i].start = ref_buffer + j - len;
+            }
+            else if (flag == false ) {    //  maybe change this
+                ++len;
+            }
+            ++j;
+        }
+$       if ( flag == false ) {      // vverh
+$           Text->line_array[i].start = ref_buffer + j - len;
+        }
+$       while ( ref_buffer[j] != '\n' ) {
+$           ++j;
+        }
+        //Verificator ( &Stack, &error_indificate );
 
-    }  */
+$       if ( strcmp ( Text->line_array[i].start, CC.arr[START].str ) == 0 ) {
+$           StackPush( &Pointer, i + 1 );
+        }
+        if ( strcmp ( Text->line_array[i].start, CC.arr[CALL].str ) == 0 ) {
+            Pointer.capacity -= 1;
+            int data = Pointer.str[Pointer.capacity];
+$           StackPush( &Pointer, i + 1 );
+            StackPush( &Pointer, data  );
+        }
+    }
 
-    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
+    StackDump ( Pointer, INFORMATION );
+    Pointer.capacity = 1;
+
+$    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
         int len = 0;
         bool flag = false;
         while ( buffer[j] != '\0' ) {   // flag E space   '\n'
@@ -148,13 +188,14 @@ $
             StackPush( &Stack, ' ' );
             StackPush( &Stack, ' ' );
             StackPush( &Stack, ' ' );
-            StackPush( &Pointer, i + 1 );
-            //StackDump ( Pointer, INFORMATION );
+            //StackPush( &Pointer, i + 1 );
         }
         else if ( strcmp ( Text->line_array[i].start, CC.arr[CALL].str ) == 0 ) {
             StackPush ( &Stack, CC.arr[CALL].code );
             StackPush ( &Stack  , StackPop ( Pointer.str, &Pointer.capacity ) );
-            StackPush ( &Pointer, i + 1 );
+            Pointer.capacity += 2;
+            //StackDump ( Pointer, INFORMATION );
+            //StackPush ( &Pointer, i + 1 );
             StackPush ( &Stack, Text->line_array[i].element );
         }
         else {

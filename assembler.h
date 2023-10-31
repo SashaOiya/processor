@@ -9,11 +9,11 @@
 
 //typedef float char_t;
 
-#ifdef DEBUG
+/*#ifdef DEBUG
 #define $ fprintf (stderr, "%d\n", __LINE__ );
 #else
 #define $
-#endif
+#endif*/
 
 struct Line_t {
     char *start  = nullptr;

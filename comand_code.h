@@ -34,14 +34,14 @@ struct Comand {
 struct Comand_Code { // remove    // this is krivo!!!
     const int n_comands = 22;
     const struct Comand arr[22] = {
-                                    { "push"  , PUSH  }, { "hlt", HLT  }, { "add", ADD },
-                                    { "mul"   , MUL   }, { "sqrt", SQRT}, { "sin", SIN },
-                                    { "cos"   , COS   }, { "div", DIV  }, { "sub", SUB },
-                                    { "in"    , IN    }, { "out", OUT  }, { "pop", POP },
-                                    { ":"     , START }, { "jmp", JMP  }, { "ja" , JA  },
-                                    { "jae"   , JAE   }, { "jb", JB    }, { "jbe", JBE },
-                                    { "je"    , JE    }, { "jne", JNE  }, { "call"  , CALL  },
-                                    { "ret", RET }
+                                    { "push", PUSH  }, { "hlt", HLT  }, { "add" , ADD },
+                                    { "mul" , MUL   }, { "sqrt", SQRT}, { "sin" , SIN },
+                                    { "cos" , COS   }, { "div", DIV  }, { "sub" , SUB },
+                                    { "in"  , IN    }, { "out", OUT  }, { "pop" , POP },
+                                    { ":"   , START }, { "jmp", JMP  }, { "ja"  , JA  },
+                                    { "jae" , JAE   }, { "jb", JB    }, { "jbe" , JBE },
+                                    { "je"  , JE    }, { "jne", JNE  }, { "call",CALL },
+                                    { "ret" , RET   }
                                   };
 };                            // remove
 
