@@ -1,9 +1,18 @@
-in;
-pop rax;
-:start;
-push rax;
-push 5;
-mul;
-ja 4;
-out;
-hlt;
+in;       0.
+pop rax;  1.
+: start;  2. //start jump
+push rax; 3.
+push 5;   4.
+mul;      5.
+jmp;      6.
+hlt;      7.
+: next;   8. //start func
+push 5;   9.
+ret;      10.
+out;      11.
+call;     12.
+: prev;   13. //start func
+pop 5;    14.
+ret;      15.
+out;      16.
+call;     17.
