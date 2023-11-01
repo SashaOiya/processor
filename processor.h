@@ -20,8 +20,8 @@ enum Arg_Indicator {
     ARG_ERROR    = 4
 };
 
-int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Register, char_t *buffer );
-int Processing ( int command, Stack_Data_t *Stack, char_t value,
+int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Register, elem_t *buffer );
+int Processing ( int command, Stack_Data_t *Stack, elem_t *value,
                  int registers, Register_t *Register, int *ip, int arg_indicator );
 int GetFileSize ( FILE *f);
 

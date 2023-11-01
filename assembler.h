@@ -31,7 +31,7 @@ struct Register_t {
     elem_t rax =  0;
     elem_t rbx =  0;
     elem_t rcx =  0;
-    elem_t rdx = -1;
+    int rdx =  0;
 };
 
 enum Register {
@@ -41,7 +41,7 @@ enum Register {
 };
 
 void Assembler ( );
-int Compare ( Comand_Code cc, Line_t line_array, Stack_Data_t *Stack );
+int Compare ( Comand_Code cc, Line_t line_array, Stack_Data_t *Stack, int *Pointer );
 int GetFileSize ( FILE * f );
 int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f );
 int Split ( Text_t *Text, char *buffer );

@@ -12,7 +12,7 @@ $
     Stack.str = StackCtor ( Stack.size_stack );
 
     FILE *file_f = fopen ( "code.txt", "rb" );
-    int file_size = GetFileSize ( file_f ) / 4 + 1;
+    int file_size = GetFileSize ( file_f ) / sizeof ( elem_t ) + 1;
     Vm_spu.n_comands = ( file_size - 1 ) / 3;
 
     elem_t *RAM = (elem_t *)calloc(file_size, sizeof ( elem_t ) );
@@ -21,6 +21,9 @@ $
 
     fread ( RAM, sizeof( elem_t ), Vm_spu.n_comands * 3, file_f );
     assert ( RAM != nullptr );
+
+    //printf ( "COMMANDS NUMBER %d\n", Vm_spu.n_comands );
+    //printf ( "FILE SIZE %d\n", file_size );
     /*for ( int i = 0; i < Vm_spu.n_comands * 3 ; ++i ) {
         printf ( "%g\n", RAM[i] );
     }  */
@@ -48,9 +51,11 @@ int GetFileSize ( FILE * f )
     return sizet;
 }
 
-int Processing ( int command, Stack_Data_t *Stack, elem_t *value, int registers, Register_t *Register, int *ip, int arg_indicator )
+int Processing ( int command, Stack_Data_t *Stack, elem_t *value,
+                 int registers, Register_t *Register, int *ip, int arg_indicator )
 {
     //int arg_indicator = 0;
+    printf ( "COMMAND %d\t REGISTERS %d\t VALUE %d\n", command, registers, *value );
 
     switch ( command ) {
         case POP  : {
@@ -144,7 +149,15 @@ int Processing ( int command, Stack_Data_t *Stack, elem_t *value, int registers,
             }
             break;
        case JMP : {
-                *ip = registers;
+                *ip = registers - 3 * sizeof(elem_t);
+            }
+            break;
+        case JA : {
+                elem_t temp = StackPop( Stack->str, &Stack->capacity );
+                StackPush( Stack, temp );
+                if ( temp > *value ) {
+                    *ip = registers;
+                }
             }
             break;
         /*case JA : {
@@ -164,16 +177,12 @@ int Processing ( int command, Stack_Data_t *Stack, elem_t *value, int registers,
             }
             break;  */
         case RET : {
-                if ( *value == 0 ) {
-                    *value += 1;
-                }
-                else {
-                    *ip = registers;
-                }
+                *ip = Register->rdx;
             }
             break;
         case CALL : {
-                *ip = registers;
+                Register->rdx = *ip;
+                *ip = registers - 3 * sizeof ( elem_t );
             }
             break;
        default :
@@ -186,16 +195,22 @@ int Processing ( int command, Stack_Data_t *Stack, elem_t *value, int registers,
 
 int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Register, elem_t *RAM )   // return error
 {
-    for ( int j = 0, arg_indicator = 0; j < Vm_spu.n_comands; ++j ) {
+    //int ip = 0;
+    int end_ip = Vm_spu.n_comands * 3 * sizeof ( elem_t );
+
+    for ( int ip = 0, arg_indicator = 0; ip < end_ip;  ) {
 
         //printf ( "%g\n", RAM[j*3] );
 
-        arg_indicator = Processing ( RAM[j*3+0], Stack, &RAM[j*3+2], RAM[j*3+1], Register, &j, arg_indicator );
+        arg_indicator = Processing ( RAM[ip/sizeof(elem_t)], Stack, &RAM[ip/sizeof(elem_t) + 2]  ,
+                                     RAM[ip/sizeof(elem_t) + 1], Register, &ip, arg_indicator );
 
         if ( arg_indicator == ARG_END ) {
 
             return -1;
         }
+        printf ( "IPPPPPP %d\n", ip/(sizeof(elem_t)*3) );
+        ip += 3 * sizeof ( elem_t );
 
         StackDump ( *Stack, INFORMATION );
     }
