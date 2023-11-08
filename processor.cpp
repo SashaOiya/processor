@@ -32,6 +32,7 @@ $
     }
     //error
 
+
     return 0;
 }
 
@@ -46,11 +47,16 @@ int GetFileSize ( FILE * f )
     return sizet;
 }
 
-int Processing ( int command, int registers, elem_t *value, int *ip,
+int Processing ( int indificate, int *ip,
                  Stack_Data_t *Stack, Register_t *Register, int arg_indicator,
                  Stack_Data_t *Ret_Stack )
 {
     assert ( Ret_Stack != nullptr );
+
+    int command   = ( indificate >> 0  ) & ~( ~0 << 5  );
+    int registers = ( indificate >> 5  ) & ~( ~0 << 15 );
+    elem_t value  = ( indificate >> 20 ) & ~( ~0 << 12 );
+
     switch ( command ) {
         case POP  : {
             //arg_indicator = ARG_OUTPUT;
@@ -77,7 +83,7 @@ int Processing ( int command, int registers, elem_t *value, int *ip,
                  StackPush( Stack, Register->rcx );
             }
             else {
-                StackPush( Stack, *value );
+                StackPush( Stack, value );
             }
             }
             break;
@@ -143,13 +149,13 @@ int Processing ( int command, int registers, elem_t *value, int *ip,
             }
             break;
        case JMP : {
-                *ip = registers - 3 * sizeof(elem_t);
+                *ip = registers - 1;
             }
             break;
         case JA : {
                 elem_t temp = StackPop( Stack );
                 StackPush( Stack, temp );
-                if ( temp > *value ) {
+                if ( temp > value ) {
                     *ip = registers;
                 }
             }
@@ -178,7 +184,7 @@ int Processing ( int command, int registers, elem_t *value, int *ip,
         case CALL : {
 $               StackPush( Ret_Stack, *ip );
                 printf ( "PUSH %d\n", *ip );
-$               *ip = registers - 3 * sizeof ( elem_t );
+$               *ip = registers - 1;
             }
             break;
        default :
@@ -197,11 +203,9 @@ int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Reg
     StackCtor ( &Ret_Stack );
 
 
-    for ( int ip = 0, arg_indicator = 0; ip < end_ip;  ) {
+    for ( int ip = 0, arg_indicator = 0; ip < end_ip; ++ip ) {
 
-        arg_indicator = Processing ( Vm_spu.RAM[ip/sizeof(elem_t)    ],
-                                     Vm_spu.RAM[ip/sizeof(elem_t) + 1],
-                                    &Vm_spu.RAM[ip/sizeof(elem_t) + 2], &ip,
+        arg_indicator = Processing ( Vm_spu.RAM[ip], &ip,
                                     Stack, Register, arg_indicator, &Ret_Stack );
         //int arr[10];
 
@@ -213,7 +217,7 @@ int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Reg
 
             return -1; // magic numberr
         }
-        ip += 3 * sizeof ( elem_t ); // magic numberr
+        //ip += 1;//3 * sizeof ( elem_t ); // magic numberr
 
         StackDump ( *Stack, INFORMATION );
     }

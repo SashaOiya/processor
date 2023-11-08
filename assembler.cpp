@@ -46,14 +46,13 @@ int Compare ( Comand_Code cc, Line_t line_array, Stack_Data_t *Stack, int *Point
 {
 $   for ( int i = 0; i < cc.n_comands; ++i ) {
 $       if ( strcmp ( line_array.start, cc.arr[i].str ) == 0 ) {
-            StackPush( Stack, cc.arr[i].code );
+            int indificate = 0;
             if ( i == JMP || i == JA || i == JB ) {
-                StackPush ( Stack, Pointer[line_array.registerr] );
+                StackPush ( Stack, ((((indificate | line_array.element ) << 15 ) | Pointer[line_array.registerr] ) << 5 ) | cc.arr[i].code );
             }
             else {
-                StackPush ( Stack, line_array.registerr );
+                StackPush ( Stack, ((((indificate | line_array.element ) << 15 ) | line_array.registerr ) << 5 ) | cc.arr[i].code );
             }
-            StackPush ( Stack, line_array.element );
 $
 $           break;
         }
@@ -136,15 +135,8 @@ $       if ( strcmp ( Text->line_array[i].start, CC.arr[START].str ) == 0 ) {
 $           labels_array[(int)Text->line_array[i].element] = ip;
         }
         else {
-            ip += 3 * sizeof ( elem_t );  // 3 == n_elem
+            ip += 1;//3 * sizeof ( elem_t );  // 3 == n_elem
         }
-
-        /*if ( strcmp ( Text->line_array[i].start, CC.arr[CALL].str ) == 0 ) {
-            Pointer.capacity -= 1;
-            int data = Pointer.str[Pointer.capacity];
-$           StackPush( &Pointer, i );
-            StackPush( &Pointer, data  );
-        }*/
     }
 $
 
@@ -186,9 +178,11 @@ $    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
         Verificator ( &Stack );
 
         if ( strcmp ( Text->line_array[i].start, CC.arr[CALL].str ) == 0 ) {
-            StackPush ( &Stack, CC.arr[CALL].code );
-            StackPush ( &Stack, labels_array[(int)Text->line_array[i].element] );
-            StackPush ( &Stack, 0 ); //Text->line_array[i].element );
+            int indificate = 0;
+            StackPush ( &Stack, ((((indificate | 0 ) << 15 ) | labels_array[(int)Text->line_array[i].element] ) << 5 ) | CC.arr[CALL].code );
+            //StackPush ( &Stack, CC.arr[CALL].code );
+            //StackPush ( &Stack, labels_array[(int)Text->line_array[i].element] );
+            //StackPush ( &Stack, 0 ); //Text->line_array[i].element );
         }
         else if ( strcmp ( Text->line_array[i].start, CC.arr[START].str ) == 0 ) {
             ;
@@ -199,7 +193,7 @@ $    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
     }
 
     StackDump ( Stack, INFORMATION );
-    fwrite ( Stack.data, sizeof ( elem_t ), ip / sizeof ( elem_t ), code_f );
+    fwrite ( Stack.data, sizeof ( elem_t ), ip , code_f );
     // err
             //you should do a lot of work to pass this, you just can give up, but i am syre, that's is not your aim
     StackDtor ( &Stack );

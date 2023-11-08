@@ -22,7 +22,7 @@ enum Arg_Indicator {
 };
 
 int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE  *file_f, Register_t *Register );
-int Processing ( int command, int registers, elem_t *value, int *ip,
+int Processing ( int indificate, int *ip,
                  Stack_Data_t *Stack, Register_t *Register, int arg_indicator,
                  Stack_Data_t *Ret_Stack );
 int GetFileSize ( FILE *f);

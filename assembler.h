@@ -7,6 +7,8 @@
 #include "comand_code.h"
 #include "stack.h"
 
+const int line_size = 3 * sizeof ( elem_t );
+
 //typedef float char_t;
 
 /*#ifdef DEBUG

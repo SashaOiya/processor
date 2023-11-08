@@ -1,7 +1,7 @@
 #ifndef STACK
 #define STACK
 
-#define SPECIFIER "%g"
+#define SPECIFIER "%d"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +27,7 @@ enum Err_t {
 };
 
 typedef long canary_t;
-typedef float elem_t;
+typedef int elem_t;
 
 // #ifdef CANARY_PROTECTION
 struct Stack_Data_t {          // Stack_t
