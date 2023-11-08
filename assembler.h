@@ -25,6 +25,7 @@ struct Text_t {
     int file_size = 0;
     Line_t * line_array;
     int n_lines = 0;
+    int error_indificate = 0;
 };
 
 struct Register_t {
@@ -44,6 +45,6 @@ void Assembler ( );
 int Compare ( Comand_Code cc, Line_t line_array, Stack_Data_t *Stack, int *Pointer );
 int GetFileSize ( FILE * f );
 int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f );
-int Split ( Text_t *Text, char *buffer );
+int Asm_Compile ( Text_t *Text, char *buffer, const char *output_file );
 
 #endif // ASM

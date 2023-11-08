@@ -1,37 +1,34 @@
 #include "assembler.h"
-//#include "stack.h"
 
-//void Get_Pointer ( char *ref_buffer, Stack_Data_t *Pointer, Text_t *Text, Comand_Code cc );
+void Get_Pointer ( int *labels_array, char *buffer, Text_t *Text, Comand_Code CC, int *ip );
 
-int main () // argc argv
+int main ( int argc, char* argv[] )
 {
-    int n_comands = 0;
+    FILE *comand_f = fopen ( argv[1], "rb" );
+    assert ( comand_f != nullptr );
 
-    Assembler ();
-
-    return 0;
-}
-
-void Assembler ()
-{
-    FILE *comand_f = fopen ( "start.txt", "rb" );  // file
-
-    Text_t Text    = {};
-
+    Text_t Text = {};
     Text.file_size = GetFileSize ( comand_f );
 
     char *buffer = ( char *)calloc ( Text.file_size + 1, sizeof ( char ) );
-    // errrrrrr
+    assert ( buffer != nullptr );
 
-    fread ( buffer, sizeof( buffer[0] ), Text.file_size, comand_f );    //return value
-    // errrr
-
+    int ret_code = fread ( buffer, sizeof( buffer[0] ), Text.file_size, comand_f );
+    if ( ret_code != Text.file_size ) {
+        if ( feof ( comand_f ) ) {
+            printf("Error reading test.bin: unexpected end of file\n");
+        }
+        else if ( ferror ( comand_f ) ) {
+            perror("Error reading test.bin");
+        }
+    }
     buffer[Text.file_size] = '\n';
 
-    Split ( &Text, buffer );  // Assemble() Compile()
+    Asm_Compile ( &Text, buffer, argv[2] );
 
     //AsmDtor ( buffer, Text.line_array, code_f );
 
+    return 0;
 }
 
 int GetFileSize ( FILE * f )
@@ -52,7 +49,6 @@ $       if ( strcmp ( line_array.start, cc.arr[i].str ) == 0 ) {
             StackPush( Stack, cc.arr[i].code );
             if ( i == JMP || i == JA || i == JB ) {
                 StackPush ( Stack, Pointer[line_array.registerr] );
-                //Pointer->capacity += 2; //
             }
             else {
                 StackPush ( Stack, line_array.registerr );
@@ -74,15 +70,15 @@ int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f )
     fclose ( comand_f ); //error
 }
 
-int Split ( Text_t *Text, char *buffer )   //name FILE*
+int Asm_Compile ( Text_t *Text, char *buffer, const char *output_file )
 {
     Stack_Data_t Stack  = {};
     Comand_Code CC = {};
     int error_indificate = 0;
     //Stack_Data_t Pointer  = {};
-    int Pointer[10] = {};
+    int labels_array[10] = {};
 $
-    Stack.str   = StackCtor ( Stack.size_stack   );
+    StackCtor ( &Stack );
     //Pointer.str = StackCtor ( Pointer.size_stack );
 
     char *ref_buffer = ( char *)calloc (  Text->file_size + 1, sizeof ( char ) );
@@ -137,7 +133,7 @@ $           ++j;
         //Verificator ( &Stack, &error_indificate );
 
 $       if ( strcmp ( Text->line_array[i].start, CC.arr[START].str ) == 0 ) {
-$           Pointer[(int)Text->line_array[i].element] = ip;
+$           labels_array[(int)Text->line_array[i].element] = ip;
         }
         else {
             ip += 3 * sizeof ( elem_t );  // 3 == n_elem
@@ -150,9 +146,7 @@ $           StackPush( &Pointer, i );
             StackPush( &Pointer, data  );
         }*/
     }
-
-    //StackDump ( Pointer, INFORMATION );
-    //Pointer.capacity = 1;
+$
 
 $    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
         int len = 0;
@@ -189,38 +183,32 @@ $    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
         while ( buffer[j] != '\n' ) {
             ++j;
         }
-        Verificator ( &Stack, &error_indificate );
+        Verificator ( &Stack );
 
-        /*if ( strcmp ( Text->line_array[i].start, CC.arr[START].str ) == 0 ) {
-            StackPush( &Stack, ' ' );
-            StackPush( &Stack, ' ' );
-            StackPush( &Stack, ' ' );
-        } */
         if ( strcmp ( Text->line_array[i].start, CC.arr[CALL].str ) == 0 ) {
             StackPush ( &Stack, CC.arr[CALL].code );
-            StackPush ( &Stack  , Pointer[(int)Text->line_array[i].element] );
-            //Pointer.capacity += 2;
+            StackPush ( &Stack, labels_array[(int)Text->line_array[i].element] );
             StackPush ( &Stack, 0 ); //Text->line_array[i].element );
         }
         else if ( strcmp ( Text->line_array[i].start, CC.arr[START].str ) == 0 ) {
             ;
         }
         else {
-            Compare ( CC, Text->line_array[i], &Stack, Pointer );
+            Compare ( CC, Text->line_array[i], &Stack, labels_array );
         }
     }
 
     StackDump ( Stack, INFORMATION );
-    fwrite ( Stack.str, sizeof ( elem_t ), ip / sizeof ( elem_t ), code_f );
+    fwrite ( Stack.data, sizeof ( elem_t ), ip / sizeof ( elem_t ), code_f );
     // err
             //you should do a lot of work to pass this, you just can give up, but i am syre, that's is not your aim
-    StackDtor ( Stack.str, Stack.size_stack );
+    StackDtor ( &Stack );
     fclose ( code_f );
 
-    return error_indificate;
+    return Text->error_indificate;
 }
 
-/*void Get_Pointer ()
+/*void Get_Pointer ( int *labels_array, char *buffer, Text_t *Text, Comand_Code CC, int *ip )
 {
     char *ref_buffer = ( char *)calloc (  Text->file_size + 1, sizeof ( char ) );
     strcpy ( ref_buffer, buffer );
@@ -242,6 +230,7 @@ $    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
                 ref_buffer[j] = '\0';
                 flag = true;
 $               Text->line_array[i].start = ref_buffer + j - len;
+                Text->line_array[i].element = ( elem_t )atof ( ref_buffer + j + 1 );
             }
             else if (flag == false ) {    //  maybe change this
                 ++len;
@@ -254,23 +243,13 @@ $           Text->line_array[i].start = ref_buffer + j - len;
 $       while ( ref_buffer[j] != '\n' ) {
 $           ++j;
         }
-        //Verificator ( &Stack, &error_indificate );
 
 $       if ( strcmp ( Text->line_array[i].start, CC.arr[START].str ) == 0 ) {
-$           StackPush( &Pointer, i + 1 );
+$           labels_array[(int)Text->line_array[i].element] = *ip;
         }
-        if ( strcmp ( Text->line_array[i].start, CC.arr[CALL].str ) == 0 ) {
-            Pointer.capacity -= 1;
-            int data = Pointer.str[Pointer.capacity];
-$           StackPush( &Pointer, i + 1 );
-            StackPush( &Pointer, data  );
+        else {
+            *ip += 3 * sizeof ( elem_t );  // 3 == n_elem
         }
     }
-
-    StackDump ( Pointer, INFORMATION );
-    Pointer.capacity = 1;  */
-
-
-
-
+}  */
 

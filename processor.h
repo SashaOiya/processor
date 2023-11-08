@@ -8,7 +8,8 @@
 #include <cmath>
 
 struct Vm_t {
-    int n_comands = 0;    //
+    int file_size = 0;
+    elem_t *RAM   = {};
 };
 
 enum Arg_Indicator {
@@ -20,9 +21,10 @@ enum Arg_Indicator {
     ARG_ERROR    = 4
 };
 
-int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Register, elem_t *buffer );
-int Processing ( int command, Stack_Data_t *Stack, elem_t *value,
-                 int registers, Register_t *Register, int *ip, int arg_indicator );
+int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE  *file_f, Register_t *Register );
+int Processing ( int command, int registers, elem_t *value, int *ip,
+                 Stack_Data_t *Stack, Register_t *Register, int arg_indicator,
+                 Stack_Data_t *Ret_Stack );
 int GetFileSize ( FILE *f);
 
 #endif // PROCESSOR
