@@ -31,10 +31,10 @@ struct Text_t {
 };
 
 struct Register_t {
-    elem_t rax =  0;
-    elem_t rbx =  0;
-    elem_t rcx =  0;
-    int rdx =  0;
+    struct reg {
+        elem_t rx = 0;
+    };
+    struct reg arr[3] = {};
 };
 
 enum Register {

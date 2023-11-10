@@ -47,9 +47,8 @@ int GetFileSize ( FILE * f )
     return sizet;
 }
 
-int Processing ( int indificate, int *ip,
-                 Stack_Data_t *Stack, Register_t *Register, int arg_indicator,
-                 Stack_Data_t *Ret_Stack )
+int Processing ( int indificate, int *ip, Stack_Data_t *Stack, Register_t *Register,
+                 int arg_indicator, Stack_Data_t *Ret_Stack )
 {
     assert ( Ret_Stack != nullptr );
 
@@ -60,27 +59,13 @@ int Processing ( int indificate, int *ip,
     switch ( command ) {
         case POP  : {
             //arg_indicator = ARG_OUTPUT;
-            if ( registers == RAX ) {
-                Register->rax = StackPop( Stack );
-            }
-            else if ( registers == RBX ) {
-                Register->rbx = StackPop( Stack );
-            }
-            else if ( registers == RCX ) {
-                Register->rcx = StackPop( Stack );
-            }
+            Register->arr[registers].rx = StackPop( Stack );
             }
             break;
         case PUSH : {
             //arg_indicator = ARG_INPUT;
-            if ( registers == RAX ) {
-                StackPush( Stack, Register->rax );
-            }
-            else if ( registers == RBX ) {
-                 StackPush( Stack, Register->rbx );
-            }
-            else if ( registers == RCX ) {
-                 StackPush( Stack, Register->rcx );
+            if ( registers != 0 ) { //
+                StackPush( Stack, Register->arr[registers].rx );
             }
             else {
                 StackPush( Stack, value );
@@ -160,22 +145,6 @@ int Processing ( int indificate, int *ip,
                 }
             }
             break;
-        /*case JA : {
-                if ( Register->rdx == 0 ) {
-                    arg_indicator = ARG_OUTPUT;   //rdx
-                }
-                else if ( arg_indicator != ARG_FUNC ) {
-                    arg_indicator = ARG_FUNC;
-                    *ip = (int) (Register->rbx) / 3 + 1;
-                    Register->rdx = value - 1 ;
-                }
-                else {
-                    arg_indicator = ARG_FUNC;
-                    *ip = (int) (Register->rbx) / 3 + 1;
-                    Register->rdx = Register->rdx - 1;
-                }
-            }
-            break;  */
         case RET : {
                 *ip = StackPop( Ret_Stack );
                 printf ( "%d\n", *ip);
@@ -187,8 +156,9 @@ $               StackPush( Ret_Stack, *ip );
 $               *ip = registers - 1;
             }
             break;
-       default :
+       default : {
             arg_indicator = ARG_ERROR;
+            }
             break; //error
     }
 
@@ -201,7 +171,6 @@ int Processor ( Vm_t Vm_spu, Stack_Data_t *Stack, FILE * file_f, Register_t *Reg
 
     Stack_Data_t Ret_Stack  = {};
     StackCtor ( &Ret_Stack );
-
 
     for ( int ip = 0, arg_indicator = 0; ip < end_ip; ++ip ) {
 
