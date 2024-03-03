@@ -19,8 +19,8 @@ const int line_size = 3 * sizeof ( elem_t );
 
 struct Line_t {
     char *start  = nullptr;
-    elem_t element = 0;
-    int registerr = 0;
+    elem_t element = 0;   // argument   // element pointer
+    int registerr = 0; //?
 };
 
 struct Text_t {
@@ -30,23 +30,31 @@ struct Text_t {
     int error_indificate = 0;
 };
 
-struct Register_t {
+
+struct Cpu {
+
+    elem_t registers[4];
+    elem_t* ram;
+};
+
+
+//typedef elem_t int
+// Registers
+/*struct Register_t {
     struct reg {
-        elem_t rx = 0;
-    };
+       elem_t rx = 0;
+    };  //?
+
+
     struct reg arr[3] = {};
-};
+};    */
 
-enum Register {
-    RAX = 1,
-    RBX = 2,
-    RCX = 3
-};
 
-void Assembler ( );
-int Compare ( Comand_Code cc, Line_t line_array, Stack_Data_t *Stack, int *Pointer );
+//void Assembler ( );
+int AsmCompare ( Line_t line_array, Stack_Data_t *Stack, int *pointer, Stack_Data_t *Pointer );
 int GetFileSize ( FILE * f );
 int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f );
-int Asm_Compile ( Text_t *Text, char *buffer, const char *output_file );
+int AsmCompile ( Text_t *Text, char *buffer, FILE *code_f );
+void GetPointer ( int *labels_array, Text_t *Text, int *ip, char * ref_buffer, Stack_Data_t *Pointer );
 
 #endif // ASM

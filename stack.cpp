@@ -1,104 +1,55 @@
-//#include "stack.h"
-
-#define SPECIFIER "%d"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <cassert>
-
-#ifdef DEBUGG
-#define $ printf ( "function <%s> line <%d>\n ", __PRETTY_FUNCTION__, __LINE__ );
-#else
-#define $
-#endif
-
-#define INFORMATION __PRETTY_FUNCTION__, __FILE__
-#define name_print(a) printf ( #a " = %s\n", a );
-
-enum Err_t {
-    SIZE_ERR  = 1,
-    HASH_ERR  = 2,
-    DATA_ERR  = 3,
-    CANA_ERR  = 4,
-    CAPA_ERR  = 5,
-    OK        = 6
-};
-
-typedef long canary_t;
-typedef int elem_t;
-
-// #ifdef CANARY_PROTECTION
-struct Stack_Data_t {          // Stack_t
-    canary_t canary_left   = 0xDED;
-    elem_t *data           = 0;
-    int capacity           = 0;
-    int size_stack         = 2;
-    long stack_hash        = 0;
-    int stack_status       = 0;
-    canary_t canary_right  = 0xDED;
-};
-
-void StackCtor ( Stack_Data_t *Stack );
-elem_t* StackRealloc ( elem_t *str, int size_stack );
-void StackDump ( Stack_Data_t Stack, const char* func_name, const char* file_name );
-void StackDtor ( Stack_Data_t *Stack );
-void StackPush ( Stack_Data_t *Stack, const elem_t value );
-elem_t StackPop ( Stack_Data_t *Stack );
-int StackHash ( Stack_Data_t *Stack );
-void StackRehash ( Stack_Data_t *Stack );
-Err_t Verificator ( Stack_Data_t *Stack );
-int GetFileSize ( FILE * f );
-
+#include "stack.h"
+// stackResize
 /*int main()
 {
     Stack_Data_t Stack = {};
-
-    FILE *f = fopen ( "code.txt", "r" );
-    if ( !f ) {
-        perror( "File opening failed" );
-
-        return -1;
-    }
 
     StackCtor ( &Stack );
 
     StackPush ( &Stack, 4 );
     StackPush ( &Stack, 7 );
+    // if (StackGetStatus( &Stack))
     StackPop  ( &Stack );
+    StackPush (&Stack, 5);
 
-    StackDump ( Stack, INFORMATION );
+    // const Stack*
+    StackDump ( Stack, INFORMATION ); // Chooo???
 
     StackDtor ( &Stack );
 
     return 0;
-}  */
+} */
 
-// stackResize
 void StackCtor ( Stack_Data_t *Stack )
 {
-    Stack->data = (elem_t *)calloc( Stack->size_stack + sizeof( canary_t ) * 2, sizeof ( elem_t ) ) + sizeof ( canary_t );
-    assert ( Stack->data != nullptr );
-    // StackRealloc()
+    // assert( Stack);
+    int pointer = sizeof( canary_t ) / sizeof ( elem_t );
 
+    Stack->data = (elem_t *)calloc( Stack->size_stack + 2 * pointer, sizeof ( elem_t ) );
+    assert ( Stack->data != nullptr ); // err
+
+    Stack->data = Stack->data + pointer;
+
+    CanaryProtection ( Stack->data - pointer, Stack );
 $   Stack->stack_hash = StackHash ( Stack );
 }
 
-elem_t* StackRealloc ( elem_t *str, int size_stack )
-{                                        //#warning no canary    //realloc
-    Stack_Data_t Stack = {};
-$   elem_t *ptr_begine = (elem_t *)calloc ( size_stack + sizeof( canary_t ) * 2, sizeof ( elem_t ) );
-    assert ( ptr_begine != nullptr );
+void StackRealloc ( Stack_Data_t *Stack )
+{
+    Stack->size_stack = 2 * (Stack->size_stack); // EXPAND_MULTIPLIER STACK_MULT_COEFF STACK_INCREASE_PARAM
 
-    // not char
-    *(canary_t *)ptr_begine = Stack.canary_left;
-    *( (canary_t *)ptr_begine + size_stack * sizeof ( elem_t ) + sizeof( canary_t ) ) = Stack.canary_right;
+    int pointer = sizeof( canary_t ) / sizeof ( elem_t );
 
-$   elem_t *ptr = ptr_begine + sizeof ( canary_t );
+$   elem_t *canary_begine = (elem_t *)calloc( Stack->size_stack + 2 * pointer , sizeof ( elem_t ) );
+    assert ( canary_begine != nullptr );
 
-$   memcpy ( ptr, str, size_stack * sizeof ( elem_t ) / 2 );
+    elem_t *stack_begine = canary_begine + pointer;
 
-$   return ptr;
+    CanaryProtection ( canary_begine, Stack );
+
+$   memcpy ( stack_begine, Stack->data, Stack->size_stack * sizeof ( elem_t ) / 2 );
+
+    Stack->data = stack_begine;
 }
 
 void StackDump ( Stack_Data_t Stack, const char* func_name, const char* file_name )
@@ -118,12 +69,12 @@ $       printf ( "\t\tdata[%d] = ", i );
 $   printf ( "\t}\n}\n");
 }
 
-void StackDtor ( Stack_Data_t *Stack )      // plus errors check
+void StackDtor ( Stack_Data_t *Stack )
 {
     Verificator ( Stack );
 
-$   memset ( Stack->data - sizeof ( canary_t ), 0, Stack->size_stack * sizeof ( elem_t )+ 2 * sizeof ( canary_t ) )
-;
+$   memset ( Stack->data - sizeof ( canary_t ), 3 /* ? */,
+             Stack->size_stack * sizeof ( elem_t ) + 2 * sizeof ( canary_t ) );
 
     free ( Stack->data - sizeof ( canary_t ) );
 }
@@ -133,15 +84,12 @@ void StackPush ( Stack_Data_t *Stack, const elem_t value )
     assert ( Stack != nullptr );
 
     Verificator ( Stack );
-
     StackRehash ( Stack );
 
     ++(Stack->capacity);
 
 $   if ( Stack->capacity == Stack->size_stack ) {
-$       Stack->size_stack = 2 * (Stack->size_stack);
-
-$       Stack->data = StackRealloc ( Stack->data, Stack->size_stack );
+$       StackRealloc ( Stack );
 $   }
 $   *( Stack->data + Stack->capacity - 1 ) = value;
 
@@ -151,12 +99,11 @@ $   *( Stack->data + Stack->capacity - 1 ) = value;
 elem_t StackPop ( Stack_Data_t *Stack  )
 {
     Verificator ( Stack );
-
     StackRehash ( Stack );
 
     elem_t temp = *( Stack->data + Stack->capacity - 1 );
     --(Stack->capacity);
-    *( Stack->data + Stack->capacity ) = 0; // const
+    *( Stack->data + Stack->capacity ) = 0;
 
     StackHash ( Stack );
 
@@ -185,10 +132,10 @@ void StackRehash ( Stack_Data_t *Stack )
     long long hash_after  = StackHash ( Stack );
 
     if ( hash_before != hash_after ) {
-        Stack->stack_status = Stack->stack_status | ( ( Stack->stack_status | 1 ) << 1 );
+        Stack->stack_status = Stack->stack_status | ( ( Stack->stack_status | 1 ) << 1 );  // Gde constants???
     }
 }
-                                                                      //switch
+
 Err_t Verificator ( Stack_Data_t *Stack )
 {
     if ( Stack->size_stack < 0 || Stack->size_stack < Stack->capacity ) {
@@ -202,21 +149,23 @@ Err_t Verificator ( Stack_Data_t *Stack )
 
         return HASH_ERR;
     }
-    /*if ( Stack->data == nullptr ) {
+    if ( Stack->data == nullptr ) {
         Stack->stack_status = Stack->stack_status | ( ( Stack->stack_status | 1 ) << 2 );
         printf ( "Buffer error\n" );
 
         return DATA_ERR;
-    }*/
-    if ( Stack->canary_left != 0xDED || Stack->canary_right != 0xDED ) {
-         //Stack->data[-sizeof ( canary_t )] != 0xDED ) { // ||
-         //Stack->data[Stack->size_stack] != 0xDED ) {
+    }
+    #ifdef CANARY_PROTECTION
+    if ( Stack->canary_left != 0xDED || Stack->canary_right != 0xDED ||
+         Stack->data[-sizeof(canary_t) / sizeof(elem_t)] != 0xDED ||
+         Stack->data[Stack->size_stack] != 0xDED ) {
 
         Stack->stack_status = Stack->stack_status | ( ( Stack->stack_status | 1 ) << 3 );
         printf ( "Canary error\n" );
 
         return CANA_ERR;
     }
+    #endif
     if ( Stack->capacity < 0 ) {
         Stack->stack_status = Stack->stack_status | ( ( Stack->stack_status | 1 ) << 4 );
         printf ( "Capacity error\n" );
@@ -225,4 +174,12 @@ Err_t Verificator ( Stack_Data_t *Stack )
     }
 
     return OK;
+}
+
+void CanaryProtection ( elem_t *canary_begine, Stack_Data_t *Stack )
+{
+    #ifdef CANARY_PROTECTION
+    *(canary_t *)canary_begine = Stack->canary_left;
+    *( canary_begine + sizeof( canary_t ) / sizeof ( elem_t ) + Stack->size_stack ) = Stack->canary_right;
+    #endif
 }

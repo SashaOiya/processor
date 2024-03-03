@@ -116,7 +116,7 @@ int Processing ( int indificate, int *ip, Stack_Data_t *Stack, Register_t *Regis
                 //arg_indicator = ARG_OUTPUT;
                 elem_t a = StackPop( Stack );
                 elem_t b = StackPop( Stack );
-                elem_t temp = b - a;
+                elem_t temp = a - b;
                 StackPush( Stack, temp );
             }
             break;
@@ -141,6 +141,45 @@ int Processing ( int indificate, int *ip, Stack_Data_t *Stack, Register_t *Regis
                 elem_t temp = StackPop( Stack );
                 StackPush( Stack, temp );
                 if ( temp > value ) {
+                    *ip = registers;
+                }
+            }
+        case JAE : {
+                elem_t temp = StackPop( Stack );
+                StackPush( Stack, temp );
+                if ( temp >= value ) {
+                    *ip = registers;
+                }
+            }
+            break;
+        case JNE : {
+                elem_t temp = StackPop( Stack );
+                StackPush( Stack, temp );
+                if ( temp != value ) {
+                    *ip = registers;
+                }
+            }
+            break;
+        case JE : {
+                elem_t temp = StackPop( Stack );
+                StackPush( Stack, temp );
+                if ( temp == value ) {
+                    *ip = registers;
+                }
+            }
+            break;
+        case JB : {
+                elem_t temp = StackPop( Stack );
+                StackPush( Stack, temp );
+                if ( temp < value ) {
+                    *ip = registers;
+                }
+            }
+            break;
+        case JBE : {
+                elem_t temp = StackPop( Stack );
+                StackPush( Stack, temp );
+                if ( temp <= value ) {
                     *ip = registers;
                 }
             }

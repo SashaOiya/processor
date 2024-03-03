@@ -1,7 +1,5 @@
 #include "assembler.h"
 
-void Get_Pointer ( int *labels_array, char *buffer, Text_t *Text, int *ip, char * ref_buffer );
-
 int main ( int argc, char* argv[] )
 {
     FILE *command_f = fopen ( argv[1], "rb" );
@@ -24,7 +22,10 @@ int main ( int argc, char* argv[] )
     }
     buffer[Text.file_size] = '\n';
 
-    Asm_Compile ( &Text, buffer, argv[2] );
+    FILE *f = fopen ( "code.txt", "wb" );
+    assert ( f != nullptr );
+
+    AsmCompile ( &Text, buffer, f ); //
 
     AsmDtor ( buffer, Text.line_array, command_f );
 
@@ -42,21 +43,28 @@ int GetFileSize ( FILE * f )
     return size_not_blue;
 }
 
-int Compare ( Comand_Code cc, Line_t line_array, Stack_Data_t *Stack, int *Pointer )  //name
+int AsmCompare ( Line_t line_array, Stack_Data_t *Stack, int *pointer, Stack_Data_t *Pointer )  //name
 {
-$   for ( int i = 0; i < cc.n_comands; ++i ) {
-$       if ( strcmp ( line_array.start, cc.arr[i].str ) == 0 ) {
+    int n_commands = sizeof ( arr )/ sizeof ( Comand );
+$   for ( int i = 0; i < n_commands; ++i ) {
+$       if ( strcmp ( line_array.start, arr[i].str ) == 0 ) {
             int indificate = 0;
-            if ( i == JMP || i == JA  || i == JB ||
-                 i == JAE || i == JBE || i == JE || i == JNE ) {
-                StackPush ( Stack, ((((indificate | line_array.element ) << 15 ) | Pointer[line_array.registerr] ) << 5 ) | cc.arr[i].code );
+            if ( i == JMP ) {
+                StackPush ( Stack, ((((indificate | line_array.element ) << 15 ) | pointer[line_array.element] ) << 5 ) | arr[i].code );
+            }
+            else if ( i == JA  || i == JB || i == JAE ||
+                      i == JBE || i == JE || i == JNE ) {
+                StackPush ( Stack, ((((indificate | line_array.element ) << 15 ) | StackPop ( Pointer ) ) << 5 ) | arr[i].code );
+                Pointer->capacity += 2;
             }
             else {
-                StackPush ( Stack, ((((indificate | line_array.element ) << 15 ) | line_array.registerr ) << 5 ) | cc.arr[i].code );
+                StackPush ( Stack, ((((indificate | line_array.element ) << 15 ) | line_array.registerr ) << 5 ) | arr[i].code );
             }
 $
 $           break;
         }
+        //else {   error
+
     }
 
 $   return 0; // error code
@@ -70,17 +78,19 @@ int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f )
     fclose ( comand_f ); //error
 }
 
-int Asm_Compile ( Text_t *Text, char *buffer, const char *output_file )
+int AsmCompile ( Text_t *Text, char *buffer, FILE *code_f )
 {
     Stack_Data_t Stack  = {};
-    Comand_Code CC = {};
+    //Comand_Code CC = {};
     int error_indificate = 0;
-    //Stack_Data_t Pointer  = {};
-    int labels_array[10] = {};
+    Stack_Data_t Pointer  = {};
+    int labels_array[10] = {};  //
 $
     StackCtor ( &Stack );
+    StackCtor ( &Pointer );
 
     char *ref_buffer = ( char *)calloc (  Text->file_size + 1, sizeof ( char ) );
+    assert ( ref_buffer != 0 );
     strcpy ( ref_buffer, buffer );
 
     for ( int i = 0; i <= Text->file_size; ++i ) {
@@ -95,15 +105,21 @@ $
             *( buffer + i ) = '\0';
         }
     }
-    FILE *code_f   = fopen ( output_file, "wb" );
-    assert ( code_f != nullptr );
+
+    //FILE *code_f = fopen ( "code.txt", "wb" );
+    //assert ( code_f != nullptr );
 
     Text->line_array = ( Line_t *)calloc ( Text->n_lines, sizeof ( Line_t) );
     assert ( Text->line_array != nullptr );
 
-    int ip = 0;
+    int ip = 0;        // = 1
 
-$   Get_Pointer ( labels_array, buffer, Text, &ip, ref_buffer );
+$   GetPointer ( labels_array, Text, &ip, ref_buffer, &Pointer );
+    //
+    for ( int i = 0; i < 10; ++i ) {
+        printf ( "%d\n", labels_array[i] );
+    }
+    Pointer.capacity = 1;
 
 $    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
         int len = 0;
@@ -124,7 +140,7 @@ $    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
                 }
                 else {
                     Text->line_array[i].registerr = 0;
-                    Text->line_array[i].element = ( elem_t )atof ( buffer + j + 1 );
+                    Text->line_array[i].element = atoi ( buffer + j + 1 );
                 }
             }
             else if (flag == false ) {    //  maybe change this
@@ -142,31 +158,34 @@ $    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
         }
         Verificator ( &Stack );
 
-        if ( strcmp ( Text->line_array[i].start, CC.arr[CALL].str ) == 0 ) {
+        if ( strcmp ( Text->line_array[i].start, arr[CALL].str ) == 0 ) {
             int indificate = 0;
             StackPush ( &Stack, ((((indificate | 0 ) << 15 ) | labels_array[(int)Text->line_array[i].element] ) << 5 ) | CALL );
         }
-        else if ( strcmp ( Text->line_array[i].start, CC.arr[START].str ) == 0 ) {
+        else if ( strcmp ( Text->line_array[i].start, arr[START].str ) == 0 ) {
             ;
         }
         else {
-            Compare ( CC, Text->line_array[i], &Stack, labels_array );
+            AsmCompare ( Text->line_array[i], &Stack, labels_array, &Pointer );
         }
     }
 
+    Verificator ( &Stack );
     StackDump ( Stack, INFORMATION );
     fwrite ( Stack.data, sizeof ( elem_t ), ip , code_f );
     // err
             //you should do a lot of work to pass this, you just can give up, but i am syre, that's is not your aim
     StackDtor ( &Stack );
+    //dtor pointer
     fclose ( code_f );
 
     return Text->error_indificate;
 }
 
-void Get_Pointer ( int *labels_array, char *buffer, Text_t *Text, int *ip, char * ref_buffer )
+void GetPointer ( int *labels_array, Text_t *Text, int *ip,
+                  char * ref_buffer, Stack_Data_t *Pointer )
 {
-    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
+    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {   // i ???
         int len = 0;
         bool flag = false;
         while ( ref_buffer[j] != '\0' ) {   // flag E space   '\n'
@@ -177,9 +196,9 @@ void Get_Pointer ( int *labels_array, char *buffer, Text_t *Text, int *ip, char 
                 ref_buffer[j] = '\0';
                 flag = true;
 $               Text->line_array[i].start = ref_buffer + j - len;
-                Text->line_array[i].element = ( elem_t )atof ( ref_buffer + j + 1 );
+                Text->line_array[i].element = atoi ( ref_buffer + j + 1 ); // atof
             }
-            else if (flag == false ) {    //  maybe change this
+            else if ( flag == false ) {    //  maybe change this
                 ++len;
             }
             ++j;
@@ -190,13 +209,15 @@ $           Text->line_array[i].start = ref_buffer + j - len;
 $       while ( ref_buffer[j] != '\n' ) {
 $           ++j;
         }
-        //Verificator ( &Stack, &error_indificate );
+        Verificator ( Pointer );
 
 $       if ( strcmp ( Text->line_array[i].start, ":" ) == 0 ) {
-$           labels_array[(int)Text->line_array[i].element] = *ip;
+$           labels_array[Text->line_array[i].element] = *ip;
+            StackPush ( Pointer, *ip-1 );  // thiiiiiiiiiiiis
         }
         else {
-            *ip += 1;
+            *ip += 1;  // stroka
         }
+//$ // thiiiiiiiiiiiiis
     }
 }
