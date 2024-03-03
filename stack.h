@@ -9,7 +9,7 @@
 #include <string.h>
 #include <cassert>
 
-#ifdef DEBUGG
+#ifdef DEBUG_STACK
 #define $ printf ( "function <%s> line <%d>\n ", __PRETTY_FUNCTION__, __LINE__ );
 #else
 #define $

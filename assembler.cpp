@@ -1,5 +1,7 @@
 #include "assembler.h"
 
+// func SkeapSpaces
+
 int main ( int argc, char* argv[] )
 {
     FILE *command_f = fopen ( argv[1], "rb" );
@@ -42,10 +44,10 @@ int GetFileSize ( FILE * f )
 
     return size_not_blue;
 }
-
+                 // pointer
 int AsmCompare ( Line_t line_array, Stack_Data_t *Stack, int *pointer, Stack_Data_t *Pointer )  //name
 {
-    int n_commands = sizeof ( arr )/ sizeof ( Comand );
+    const int n_commands = sizeof ( arr )/ sizeof ( Command );
 $   for ( int i = 0; i < n_commands; ++i ) {
 $       if ( strcmp ( line_array.start, arr[i].str ) == 0 ) {
             int indificate = 0;
@@ -80,78 +82,39 @@ int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f )
 
 int AsmCompile ( Text_t *Text, char *buffer, FILE *code_f )
 {
-    Stack_Data_t Stack  = {};
-    //Comand_Code CC = {};
-    int error_indificate = 0;
+    Stack_Data_t Stack    = {};
     Stack_Data_t Pointer  = {};
-    int labels_array[10] = {};  //
+    int labels_array[10]  = {};  //
 $
     StackCtor ( &Stack );
     StackCtor ( &Pointer );
-
-    char *ref_buffer = ( char *)calloc (  Text->file_size + 1, sizeof ( char ) );
-    assert ( ref_buffer != 0 );
-    strcpy ( ref_buffer, buffer );
-
-    for ( int i = 0; i <= Text->file_size; ++i ) {
-        if ( *( ref_buffer + i ) == ';' ) {
-            *( ref_buffer + i ) = '\0';
-        }
-    }
 
     for ( int i = 0; i <= Text->file_size; ++i ) {
         if ( *( buffer + i ) == ';' ) {
             ++(Text->n_lines);
             *( buffer + i ) = '\0';
         }
-    }
+    }   // make separate function
 
-    //FILE *code_f = fopen ( "code.txt", "wb" );
-    //assert ( code_f != nullptr );
-
-    Text->line_array = ( Line_t *)calloc ( Text->n_lines, sizeof ( Line_t) );
+    Text->line_array = ( Line_t *)calloc ( Text->n_lines, sizeof ( Line_t ) );
     assert ( Text->line_array != nullptr );
 
     int ip = 0;        // = 1
 
-$   GetPointer ( labels_array, Text, &ip, ref_buffer, &Pointer );
-    //
-    for ( int i = 0; i < 10; ++i ) {
-        printf ( "%d\n", labels_array[i] );
-    }
-    Pointer.capacity = 1;
+$   GetPointer ( labels_array, Text, &ip, buffer, &Pointer );
 
-$    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
-        int len = 0;
-        bool flag = false;
+$   for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
         while ( buffer[j] != '\0' ) {
             if ( buffer[j] == ' ' ) {
-                if (flag) {
-                    printf("ERROR\n");
-                }
                 buffer[j] = '\0';
-                flag = true;
-                Text->line_array[i].start = buffer + j - len;
                 if ( *( buffer + j + 1 ) == 'r' &&
                      *( buffer + j + 3 ) == 'x' &&
                      *( buffer + j + 4 ) == '\0' ) {
-                    Text->line_array[i].registerr = *( buffer + j + 2 ) - ('a' - 1);
+                    Text->line_array[i].registerr = *( buffer + j + 2 ) - ( 'a' - 1 );
                     Text->line_array[i].element = 0;
                 }
-                else {
-                    Text->line_array[i].registerr = 0;
-                    Text->line_array[i].element = atoi ( buffer + j + 1 );
-                }
-            }
-            else if (flag == false ) {    //  maybe change this
-                ++len;
             }
             ++j;
-        }
-        if ( flag == false ) {      // vverh
-            Text->line_array[i].start = buffer + j - len;
-            Text->line_array[i].registerr = 0;
-            Text->line_array[i].element   = 0;  // wtf
         }
         while ( buffer[j] != '\n' ) {
             ++j;
@@ -160,7 +123,7 @@ $    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
 
         if ( strcmp ( Text->line_array[i].start, arr[CALL].str ) == 0 ) {
             int indificate = 0;
-            StackPush ( &Stack, ((((indificate | 0 ) << 15 ) | labels_array[(int)Text->line_array[i].element] ) << 5 ) | CALL );
+            StackPush ( &Stack, (( indificate | labels_array[(int)Text->line_array[i].element] ) << 5 ) | CALL );
         }
         else if ( strcmp ( Text->line_array[i].start, arr[START].str ) == 0 ) {
             ;
@@ -176,7 +139,7 @@ $    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
     // err
             //you should do a lot of work to pass this, you just can give up, but i am syre, that's is not your aim
     StackDtor ( &Stack );
-    //dtor pointer
+    StackDtor ( &Pointer );
     fclose ( code_f );
 
     return Text->error_indificate;
@@ -187,37 +150,43 @@ void GetPointer ( int *labels_array, Text_t *Text, int *ip,
 {
     for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {   // i ???
         int len = 0;
-        bool flag = false;
+        bool flag = false;    // delete
+
+        Text->line_array[i].start = ref_buffer + j;   //
+
         while ( ref_buffer[j] != '\0' ) {   // flag E space   '\n'
             if ( ref_buffer[j] == ' ' ) {
-                if (flag) {
+                if ( flag ) {
                     printf("ERROR\n");
                 }
-                ref_buffer[j] = '\0';
                 flag = true;
 $               Text->line_array[i].start = ref_buffer + j - len;
-                Text->line_array[i].element = atoi ( ref_buffer + j + 1 ); // atof
+                Text->line_array[i].element = atoi ( ref_buffer + j + 1 );
             }
             else if ( flag == false ) {    //  maybe change this
                 ++len;
             }
             ++j;
         }
-$       if ( flag == false ) {      // vverh
-$           Text->line_array[i].start = ref_buffer + j - len;
-        }
+        Text->line_array[i].line_size = len;
+
 $       while ( ref_buffer[j] != '\n' ) {
 $           ++j;
         }
         Verificator ( Pointer );
 
+        char prev_element = *( Text->line_array[i].start + Text->line_array[i].line_size );
+        *( Text->line_array[i].start + Text->line_array[i].line_size ) = '\0';
+
 $       if ( strcmp ( Text->line_array[i].start, ":" ) == 0 ) {
 $           labels_array[Text->line_array[i].element] = *ip;
-            StackPush ( Pointer, *ip-1 );  // thiiiiiiiiiiiis
+            StackPush ( Pointer, *ip - 1 );  // thiiiiiiiiiiiis
         }
         else {
             *ip += 1;  // stroka
         }
-//$ // thiiiiiiiiiiiiis
+
+        *( Text->line_array[i].start + Text->line_array[i].line_size ) = prev_element;
     }
+    Pointer->capacity = 1;
 }

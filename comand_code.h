@@ -26,12 +26,12 @@ enum Code {
     RET   = 21
 };
 
-struct Comand {
+struct Command {
     const char *str;
     int code;
 };
 
-const struct Comand arr[22] = {
+const struct Command arr[22] = {
                                 { "push", PUSH  }, { "hlt", HLT  }, { "add" , ADD },
                                 { "mul" , MUL   }, { "sqrt", SQRT}, { "sin" , SIN },
                                 { "cos" , COS   }, { "div", DIV  }, { "sub" , SUB },

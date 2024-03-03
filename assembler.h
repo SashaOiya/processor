@@ -11,14 +11,15 @@ const int line_size = 3 * sizeof ( elem_t );
 
 //typedef float char_t;
 
-/*#ifdef DEBUG
-#define $ fprintf (stderr, "%d\n", __LINE__ );
+#ifdef DEBUG_ASM
+#define $ printf ( "function <%s> line <%d>\n ", __PRETTY_FUNCTION__, __LINE__ );
 #else
 #define $
-#endif*/
+#endif
 
 struct Line_t {
     char *start  = nullptr;
+    int line_size = 0;
     elem_t element = 0;   // argument   // element pointer
     int registerr = 0; //?
 };
@@ -32,7 +33,6 @@ struct Text_t {
 
 
 struct Cpu {
-
     elem_t registers[4];
     elem_t* ram;
 };
@@ -49,8 +49,6 @@ struct Cpu {
     struct reg arr[3] = {};
 };    */
 
-
-//void Assembler ( );
 int AsmCompare ( Line_t line_array, Stack_Data_t *Stack, int *pointer, Stack_Data_t *Pointer );
 int GetFileSize ( FILE * f );
 int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f );
