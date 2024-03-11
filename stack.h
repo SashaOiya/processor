@@ -1,15 +1,15 @@
 #ifndef STACK
 #define STACK
 
-#define SPECIFIER "%d"
-#define CANARY_PROTECTION
+typedef float char_t;
+#define SPECIFIER "%g"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <cassert>
 
-#ifdef DEBUG_STACK
+#ifdef DEBUGG
 #define $ printf ( "function <%s> line <%d>\n ", __PRETTY_FUNCTION__, __LINE__ );
 #else
 #define $
@@ -18,40 +18,36 @@
 #define INFORMATION __PRETTY_FUNCTION__, __FILE__
 #define name_print(a) printf ( #a " = %s\n", a );
 
-enum Err_t {
-    SIZE_ERR  = 1,
-    HASH_ERR  = 2,
-    DATA_ERR  = 3,
-    CANA_ERR  = 4,
-    CAPA_ERR  = 5,
-    OK        = 6
+enum Errors_t {
+    NO_ERRORS = 1,
+    ERROR     = 2
 };
 
-typedef long canary_t;
-typedef int elem_t;
-
-struct Stack_Data_t {
-    canary_t canary_left   = 0xDED;
-    elem_t *data           = 0;
-    int capacity           = 0;
-    int size_stack         = 1;
-    long stack_hash        = 0;
-    int stack_status       = 0;
-    canary_t canary_right  = 0xDED;
+struct Error_t {        // typedef
+    int ERROR = 0;
 };
 
-// issue
-// StackGetStatus()  { return stack_status; }
-void StackCtor ( Stack_Data_t *Stack );
-void StackRealloc ( Stack_Data_t *Stack );
-void StackDump ( Stack_Data_t Stack, const char* func_name, const char* file_name );
-void StackDtor ( Stack_Data_t *Stack );
-void StackPush ( Stack_Data_t *Stack, const elem_t value );
-elem_t StackPop ( Stack_Data_t *Stack );
+typedef long long canary_t;
+
+// #ifdef CANARY_PROTECTION
+struct Stack_Data_t {          // Stack_t
+    long canary_left    = 0xDED;
+    long canary_right   = 0xDED;
+    char_t *str             = 0;             //free
+    int capacity            = 0;
+    int size_stack          = 2;
+};
+
+char_t * StackCtor ( const int size_stack );
+char_t* StackRedistribute ( char_t *str, int size_stack );
+void StackDump ( const char_t *stack, const char* func_name, const char* file_name,
+                 size_t size_stack, const size_t capacity );
+int StackDtor ( char_t *stack, size_t size_stack );
+Errors_t StackPush ( char_t *str[], const char_t value, int * size_stack, int *capacity );
+char_t StackPop ( char_t *stack, int *capacity );
+void StackCreator ( FILE *f, int *capacity, int *size_stack, char_t *str[], int n_lines  );
 int StackHash ( Stack_Data_t *Stack );
-void StackRehash ( Stack_Data_t *Stack );
-Err_t Verificator ( Stack_Data_t *Stack );
+void Verificator ( Stack_Data_t *Stack, int *error_indificate );
 int GetFileSize ( FILE * f );
-void CanaryProtection ( elem_t *canary_begine, Stack_Data_t *Stack );
 
-#endif  //STACK
+#endif //STACK
