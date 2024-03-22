@@ -7,43 +7,51 @@
 #include "comand_code.h"
 #include "stack.h"
 
-//typedef float char_t;
-
-#ifdef DEBUG
-#define $ fprintf (stderr, "%d\n", __LINE__ );
-#else
-#define $
-#endif
+const int line_size = 3 * sizeof ( elem_t );
+const int distance_command_element  = 1; // FIXME little or big
+const int distance_command_register = 2;
 
 struct Line_t {
     char *start  = nullptr;
-    float element = 0;
-    int registerr = 0;
+    elem_t element = 0;   // argument   // element pointer
+    int registerr = 0; //?
 };
 
 struct Text_t {
     int file_size = 0;
-    Line_t * line_array;
+    Line_t * line_array = {};
     int n_lines = 0;
+    char *data = {};
 };
 
-struct Register_t {
-    char_t rax =  0;
-    char_t rbx =  0;
-    char_t rcx =  0;
-    char_t rdx = -1;
+enum Error_t {
+    NO_ERR        = 0,
+    ENCOD_ERR     = 1,
+    F_WRITE_ERR   = 2,
+    F_READ_ERR    = 3,
+    F_OPEN_ERR    = 4,
+    MEMMORY_ERR   = 5,
+    INPUT_VAL_ERR = 6
 };
 
-enum Register {
-    RAX = 1,
-    RBX = 2,
-    RCX = 3
+struct Cpu {   // FIXME
+    elem_t registers[4];
+    elem_t* ram;
 };
 
-void Assembler ( );
-int Compare ( Comand_Code cc, Line_t line_array, Stack_Data_t *Stack );
-int GetFileSize ( FILE * f );
-int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f );
-int Split ( Text_t *Text, char *buffer );
+struct Asm_t {
+    Text_t text = {};
+    Stack_Data_t stack = {};// rename Stack_t
+    int labels_array[10]  = {};
+};
+
+Error_t Assembler_Ctor ( Text_t *text, const char *command_file );
+void Assembler_Dtor ( Text_t *Text );
+
+Error_t Assembler_Compare ( struct Asm_t *assembler, int *pointer );
+Error_t Assembler_Compile ( struct Asm_t *assembler, const char *encode_file );
+
+void Split_Data_Into_Lines ( struct Asm_t *assembler, int *ip );
+Error_t Wtite_Code_To_File ( elem_t *data, int ip, const char *encode_file );
 
 #endif // ASM
