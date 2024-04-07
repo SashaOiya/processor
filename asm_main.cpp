@@ -3,7 +3,7 @@
 int main ( const int argc, const char* argv[] )
 {
     struct Asm_t assembler = {};
-    StackCtor ( &assembler.stack );
+    Stack_Ctor ( &assembler.stack );
 
     Error_t err_code = Assembler_Ctor ( &assembler.text, argv[1] );
 
@@ -13,8 +13,8 @@ int main ( const int argc, const char* argv[] )
 
     // error handling
 
-    StackDtor ( &stack ); // to asm dtor
-    Assembler_Dtor ( &text );
+    Stack_Dtor ( &(assembler.stack) ); // to asm dtor
+    Assembler_Dtor ( &(assembler.text) );
 
     return 0;
 }

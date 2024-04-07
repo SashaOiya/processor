@@ -11,10 +11,15 @@ const int line_size = 3 * sizeof ( elem_t );
 const int distance_command_element  = 1; // FIXME little or big
 const int distance_command_register = 2;
 
+static const int reg_passed   = 0b001;
+static const int const_passed = 0b010;
+static const int ram_passed   = 0b100;
+
 struct Line_t {
     char *start  = nullptr;
     elem_t element = 0;   // argument   // element pointer
     int registerr = 0; //?
+    int passed_args = 0b000;
 };
 
 struct Text_t {
@@ -41,14 +46,14 @@ struct Cpu {   // FIXME
 
 struct Asm_t {
     Text_t text = {};
-    Stack_Data_t stack = {};// rename Stack_t
+    Stack_t stack = {};// rename Stack_t
     int labels_array[10]  = {};
 };
 
 Error_t Assembler_Ctor ( Text_t *text, const char *command_file );
 void Assembler_Dtor ( Text_t *Text );
 
-Error_t Assembler_Compare ( struct Asm_t *assembler, int *pointer );
+Error_t Assembler_Compare ( struct Asm_t *assembler, struct Line_t line_array, int *ip );
 Error_t Assembler_Compile ( struct Asm_t *assembler, const char *encode_file );
 
 void Split_Data_Into_Lines ( struct Asm_t *assembler, int *ip );
