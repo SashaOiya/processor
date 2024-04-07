@@ -1,4 +1,5 @@
 #include "stack.h"
+#include "my_program.h"
 
 Error_t Stack_Ctor ( Stack_t *stack )
 {
@@ -9,7 +10,7 @@ Error_t Stack_Ctor ( Stack_t *stack )
     stack->data = (elem_t *)calloc( stack->size_stack + stack_mul_coeff * n_byte_begin_stack, sizeof ( elem_t ) );
     if ( !stack->data ) {//FIXME wrong size calculation: calloc( Stack->size_stack * elem_t + 2 * sizeof(canaty_t), 1)
 
-        return MEMMORY_ERR;
+        return ERR_CALLO;
     }
 
     stack->data = stack->data + n_byte_begin_stack;
@@ -20,7 +21,7 @@ $   stack->stack_hash = Stack_Hash ( stack );
     return NO_ERR;
 }
 
-Error_t Stack_Resize ( Stack_t *stack ) //FIXME use realloc
+Errors_t Stack_Resize ( Stack_t *stack ) //FIXME use realloc
 {
     assert ( stack != nullptr );
 
@@ -30,7 +31,7 @@ Error_t Stack_Resize ( Stack_t *stack ) //FIXME use realloc
 $   elem_t *canary_begin = (elem_t *)calloc ( stack->size_stack + stack_mul_coeff * n_byte_begin_stack, sizeof ( elem_t ) );
     if ( !canary_begin ) {
 
-        return MEMMORY_ERR;
+        return ERR_CALLO;
     }
 
     elem_t *stack_begin = canary_begin + n_byte_begin_stack;
@@ -63,16 +64,15 @@ $       printf ( "\t\tdata[%d] = ", i );
 $   printf ( "\t}\n}\n");
 }
 
-void Stack_Dtor ( Stack_t *stack )
+void Stack_Dtor ( Stack_t *stack )   // error may be
 {
     assert ( stack != nullptr );
     Stack_Verificator ( stack );
 
-$   memset ( stack->data - sizeof ( canary_t ), '/',
+$   memset ( stack->data - sizeof ( canary_t ), 3 /* ? */,
              stack->size_stack * sizeof ( elem_t ) + stack_mul_coeff * sizeof ( canary_t ) );
 
     free ( stack->data - sizeof ( canary_t ) );
-    stack->data = nullptr;
 }
 
 void Stack_Push ( Stack_t *stack, const elem_t value )
@@ -84,7 +84,7 @@ void Stack_Push ( Stack_t *stack, const elem_t value )
     ++(stack->capacity);
 
 $   if ( stack->capacity == stack->size_stack ) {
-$       while ( Stack_Resize ( stack ) != NO_ERR ) {
+$       while ( Stack_Resize ( stack ) != NO_ERR ) {   //
             ;
         }
 $   }

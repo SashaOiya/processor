@@ -8,8 +8,11 @@
 #include "stack.h"
 
 const int line_size = 3 * sizeof ( elem_t );
-const int distance_command_element  = 1; // FIXME little or big
+const int distance_command_const    = 1;
 const int distance_command_register = 2;
+
+#define const_pointer    assembler->text.data + j + distance_command_const
+#define register_pointer assembler->text.data + j + distance_command_register
 
 static const int reg_passed   = 0b001;
 static const int const_passed = 0b010;
@@ -27,36 +30,22 @@ struct Text_t {
     Line_t * line_array = {};
     int n_lines = 0;
     char *data = {};
-};
-
-enum Error_t {
-    NO_ERR        = 0,
-    ENCOD_ERR     = 1,
-    F_WRITE_ERR   = 2,
-    F_READ_ERR    = 3,
-    F_OPEN_ERR    = 4,
-    MEMMORY_ERR   = 5,
-    INPUT_VAL_ERR = 6
-};
-
-struct Cpu {   // FIXME
-    elem_t registers[4];
-    elem_t* ram;
+    int ip = 0;
 };
 
 struct Asm_t {
     Text_t text = {};
-    Stack_t stack = {};// rename Stack_t
+    Stack_t stack = {};
     int labels_array[10]  = {};
 };
 
-Error_t Assembler_Ctor ( Text_t *text, const char *command_file );
-void Assembler_Dtor ( Text_t *Text );
+Error_t Assembler_Ctor ( struct Asm_t *assembler, const char *command_file );
+void Assembler_Dtor ( struct Asm_t *assembler );
 
-Error_t Assembler_Compare ( struct Asm_t *assembler, struct Line_t line_array, int *ip );
-Error_t Assembler_Compile ( struct Asm_t *assembler, const char *encode_file );
+Error_t Assembler_Compare ( struct Asm_t *assembler, struct Line_t *line_array );
+Error_t Assembler_Compile ( struct Asm_t *assembler );
 
-void Split_Data_Into_Lines ( struct Asm_t *assembler, int *ip );
-Error_t Wtite_Code_To_File ( elem_t *data, int ip, const char *encode_file );
+void Split_Data_Into_Lines ( struct Asm_t *assembler );
+Error_t Wtite_Code_To_File ( struct Asm_t *assembler, const char *encode_file );
 
 #endif // ASM

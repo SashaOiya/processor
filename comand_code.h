@@ -14,7 +14,7 @@ enum Code {
     IN    =  9,
     OUT   = 10,
     POP   = 11,
-    START = 12,
+    COLON = 12,
     JMP   = 13,
     JA    = 14,
     JAE   = 15,
@@ -26,20 +26,20 @@ enum Code {
     RET   = 21
 };
 
-struct Command {
+struct Command_t {
     const char *str;
     int code;
 };
 
-const struct Command arr[22] = {
-                                { "push", PUSH  }, { "hlt", HLT  }, { "add" , ADD },
-                                { "mul" , MUL   }, { "sqrt", SQRT}, { "sin" , SIN },
-                                { "cos" , COS   }, { "div", DIV  }, { "sub" , SUB },
-                                { "in"  , IN    }, { "out", OUT  }, { "pop" , POP },
-                                { ":"   , START }, { "jmp", JMP  }, { "ja"  , JA  },
-                                { "jae" , JAE   }, { "jb", JB    }, { "jbe" , JBE },
-                                { "je"  , JE    }, { "jne", JNE  }, { "call",CALL },
-                                { "ret" , RET   }
-                              };
+const struct Command_t command_arr[22] = {
+                                          { "push", PUSH  }, { "hlt" , HLT  }, { "add" , ADD },
+                                          { "mul" , MUL   }, { "sqrt", SQRT }, { "sin" , SIN },
+                                          { "cos" , COS   }, { "div" , DIV  }, { "sub" , SUB },
+                                          { "in"  , IN    }, { "out" , OUT  }, { "pop" , POP },
+                                          { ":"   , COLON }, { "jmp" , JMP  }, { "ja"  , JA  },
+                                          { "jae" , JAE   }, { "jb"  , JB   }, { "jbe" , JBE },
+                                          { "je"  , JE    }, { "jne" , JNE  }, { "call", CALL },
+                                          { "ret" , RET   }
+                                         };
 
 #endif  // COMAND_CODE

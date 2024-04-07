@@ -1,116 +1,181 @@
 #include "assembler.h"
-#include "stack.h"
+#include "my_program.h"
 
-int main ()
+//you should do a lot of work to pass this, you just can give up, but i am sure, that's is not your aim
+
+Error_t Assembler_Ctor ( Text_t *text, const char *command_file )
 {
-    int n_comands = 0;
+    assert ( text != nullptr );
+    assert ( command_file != nullptr );
 
-    Assembler ( &n_comands );
+    FILE *command_f = fopen ( command_file, "rb" );
+    if ( !command_f ) {
+        perror ( "File opening failed" );
 
-    return 0;
+        return F_OPEN_ERR;
+    }
+
+    text->file_size = GetFileSize ( command_f );
+
+    text->data = ( char *)calloc ( text->file_size + 1, sizeof ( char ) );
+    if ( !text->data ) {
+
+        return MEMMORY_ERR;
+    }
+
+    int ret_code = fread ( text->data, sizeof ( text->data[0] ), text->file_size, command_f );
+    if ( ret_code != text->file_size ) {
+        if ( feof ( command_f ) ) {
+            printf ( "Error reading %s: unexpected end of file\n", command_file );
+        }
+        else if ( ferror ( command_f ) ) {
+            perror ( "Error reading command_file\n" );
+        }
+        fclose ( command_f );
+
+        return F_READ_ERR;
+    }
+    fclose ( command_f );
+
+    Error_t ret_err = Text_Remove_Comments ( text );
+    if ( ret_err != NO_ERR ) {
+
+        return ret_err;
+    }
+
+    text->line_array = ( Line_t *)calloc ( text->n_lines, sizeof ( Line_t ) );
+    if ( !text->line_array ) {
+
+        return MEMMORY_ERR;
+    }
+
+    return NO_ERR;
 }
 
-FILE* Assembler ( int *n_comands )
+Error_t Assembler_Compile ( struct Asm_t *assembler )
 {
-    FILE *comand_f = fopen ( "start.txt", "r" );
-    FILE *code_f   = fopen ( "code.txt", "w" );
+    assert ( assembler != nullptr );
 
-    Comand_Code CC = {};
-    Text_t Text    = {};
+$   Split_Data_Into_Lines ( assembler );
 
-    Text.file_size = GetFileSize ( comand_f );
+$   for ( int i = 0, j = 0; i < assembler->text.n_lines; ++j, ++i ) {
+        if ( strcmp ( assembler->text.line_array[i].start, command_arr[COLON].str ) == 0 ) {
+            ;
+        }
+        else {
+            Assembler_Compare ( assembler, &(assembler->text.line_array[i]) );
+        }
+    }
+    if ( Stack_Verificator ( &(assembler->stack) ) != STACK_NO_ERR ) {
 
-    char *buffer = ( char *)calloc ( Text.file_size + 1, sizeof ( char ) );
-    fread ( buffer, sizeof( buffer[0] ), Text.file_size, comand_f );    //return value
-    buffer[Text.file_size] = '\n';
+        return STACK_ERR;
+    }
+    Stack_Dump ( &(assembler->stack), INFORMATION );
 
-    Split ( &Text, code_f, CC, buffer );
-
-    *n_comands = Text.n_lines;
-
-    AsmDtor ( buffer, Text.line_array, code_f );
-
-    return code_f;
+    return NO_ERR;
 }
 
-int GetFileSize ( FILE * f )
+void Split_Data_Into_Lines ( struct Asm_t *assembler )
 {
-    int prev = ftell ( f );
+    assert ( assembler != nullptr );
 
-    fseek ( f, 0, SEEK_END );
-    size_t sizet = ftell ( f );
-    fseek ( f, prev, SEEK_SET );
+    for ( int i = 0, j = 0; i < assembler->text.n_lines; ++j, ++i ) {   // i ???
+        assembler->text.line_array[i].start = assembler->text.data + j;   //
 
-    return sizet;
+        while ( assembler->text.data[j] != '\0' ) {
+            if ( assembler->text.data[j] == ' ' ) {
+                assembler->text.data[j] = '\0';
+
+$               assembler->text.line_array[i].element = atoi ( assembler->text.data + j + distance_command_element ); // my_atoi ( a, *b );
+                assembler->text.line_array[i].passed_args |= const_passed;
+
+                if ( assembler->text.data[j + 1] == 'r' &&
+                     assembler->text.data[j + 3] == 'x' &&
+                     assembler->text.data[j + 4] == '\0' ) {
+                    assembler->text.line_array[i].registerr = *( assembler->text.data + j + distance_command_register ) - ( 'a' - distance_command_element );
+                    assembler->text.line_array[i].passed_args = ( assembler->text.line_array[i].passed_args & 0 ) | reg_passed;
+                }
+                ++(assembler->text.ip);
+            }
+            ++j;
+        }
+
+$       if ( strcmp ( assembler->text.line_array[i].start, ":" ) == 0 ) {
+            --(assembler->text.ip);
+$           assembler->labels_array[assembler->text.line_array[i].element] = assembler->text.ip;
+        }
+        else {
+            ++(assembler->text.ip);
+        }
+    }
 }
 
-int Compare ( FILE *code, Comand_Code cc, char *start, float ptr_elements, int registerr )
+Error_t Assembler_Compare ( struct Asm_t *assembler, Line_t *line_array )  //name
 {
-$   for ( int i = 0; i < cc.n_comands; ++i ) {
-$       if ( strcmp ( start, cc.arr[i].str ) == 0 ) {
-$           fprintf ( code, "%d ", cc.arr[i].code );
-            fprintf ( code, "%d ", registerr );
-            fprintf ( code, "%g\n", ptr_elements );
-$
+    assert ( assembler  != nullptr );
+    assert ( line_array != nullptr );
+
+    const int n_commands = sizeof ( command_arr ) / sizeof ( Command_t );
+
+$   for ( int i = 0; i < n_commands; ++i ) {
+$       if ( strcmp ( line_array->start, command_arr[i].str ) == 0 ) {
+            if ( i == JMP || i == JA  || i == JB  || i == JE ||
+                 i == JAE || i == JBE || i == JNE || i == CALL ) {
+                Stack_Push ( &(assembler->stack), ( const_passed << 5 ) | command_arr[i].code );
+                Stack_Push ( &(assembler->stack), assembler->labels_array[line_array->element] );
+                ++(assembler->text.ip);
+            }
+            else {
+                if ( ( line_array->passed_args & reg_passed ) != 0 ) {
+                    Stack_Push ( &(assembler->stack), ( line_array->passed_args << 5 ) | command_arr[i].code );
+                    Stack_Push ( &(assembler->stack),  line_array->registerr );      // element
+                    ++(assembler->text.ip);
+                }
+                else if ( ( line_array->passed_args & const_passed ) != 0 ) {
+                    Stack_Push ( &(assembler->stack), ( const_passed << 5 ) | command_arr[i].code );
+                    Stack_Push ( &(assembler->stack),  line_array->element );
+                    ++(assembler->text.ip);
+                }
+                else {
+                    Stack_Push ( &(assembler->stack), command_arr[i].code );
+                }
+            }
 $           break;
         }
     }
 
-$   return 0; // error code
+$   return NO_ERR;
 }
 
-int AsmDtor ( char *buffer, Line_t *line_array, FILE *comand_f )
+Error_t Wtite_Code_To_File ( struct Asm_t *assembler, const char *encode_file )
 {
-    free(buffer);
-    free(line_array);
+    assert ( assembler   != nullptr );
+    assert ( encode_file != nullptr );
 
-    fclose ( comand_f ); //error
+    FILE *code_f = fopen ( encode_file, "wb" );
+    if ( !code_f ) {
+        perror ( "File opening failed" );
+
+        return F_OPEN_ERR;
+    }
+    assembler->stack.data[assembler->text.ip] = '\0';
+
+    int written_objects_n = fwrite ( assembler->stack.data, sizeof ( elem_t ), assembler->text.ip, code_f );
+    fclose ( code_f );
+    if ( written_objects_n < assembler->text.ip ) {
+        printf ( "Write error in the file\n" );
+
+        return F_WRITE_ERR;
+    }
+
+    return NO_ERR;
 }
 
-int Split ( Text_t *Text, FILE *code_f, Comand_Code CC, char *buffer )
+void Assembler_Dtor ( struct Asm_t *assembler )
 {
-    for ( int i = 0; i <= Text->file_size; ++i ) {
-        if ( *( buffer + i ) == ';' ) {
-            ++(Text->n_lines);
-            *( buffer + i ) = '\0';
-        }
-    }
-
-    Text->line_array = ( Line_t *)calloc ( Text->n_lines, sizeof ( Line_t) );
-
-    for ( int i = 0, j = 0; i < Text->n_lines; ++j, ++i ) {
-        int len = 0;
-        bool flag = false;
-        while ( buffer[j] != '\0' ) {   // flag E space   '\n'
-            if ( buffer[j] == ' ' ) {
-                buffer[j] = '\0';
-                flag = true;
-                Text->line_array[i].start = buffer + j - len;
-                if ( *( buffer + j + 1 ) == 'r' &&
-                     *( buffer + j + 3 ) == 'x' &&
-                     *( buffer + j + 4 ) == '\0' ) {
-                    Text->line_array[i].registerr = 1;
-                    Text->line_array[i].element = ;
-                }
-                else {
-                    Text->line_array[i].registerr = 0;
-                    Text->line_array[i].element = ( char_t )atof ( buffer + j + 1 );
-                }
-            }
-            else if ( buffer[j] != ' ' && flag == false ) {
-                ++len;
-            }
-            ++j;
-        }
-        //buffer[j] = '\0';
-        if ( flag == false ) {
-            Text->line_array[i].start = buffer + j - len;
-            Text->line_array[i].registerr = 0;
-            Text->line_array[i].element = 0;  // wtf
-        }
-        while ( buffer[j] != '\n' ) {
-            ++j;
-        }
-        Compare ( code_f, CC, Text->line_array[i].start, Text->line_array[i].element, Text->line_array[i].registerr );
-    }
+    assert( assembler != nullptr);
+    
+    Stack_Dtor ( &(assembler->stack) );
+    free ( Text->data );
+    free ( Text->line_array );
 }

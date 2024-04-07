@@ -5,13 +5,9 @@ int main ( const int argc, const char* argv[] )
     Vm_t vm_spu = {};
 
     if ( ( vm_spu.ret_error = Processor_Ctor ( &vm_spu, argv[1] ) ) == NO_ERR ) {
-        if ( (  vm_spu.ret_error = Processor ( &vm_spu ) ) != NO_ERR ) {
-            // verificator
-            Stack_Dtor ( &(vm_spu.stack) );
-
-            return -1;
-        }
+        vm_spu.ret_error = Processor ( &vm_spu );
     }
+    Processor_Dtor ( &vm_spu );
 
     return 0;
 }
@@ -31,16 +27,15 @@ Error_t Processor_Ctor ( struct Vm_t *vm_spu, const char *encode_file )
         return F_OPEN_ERR;
     }
 
-    vm_spu->file_size = GetFileSize ( code_f ) / sizeof ( elem_t ) + 1; // !?
-    printf ( "%d\n", vm_spu->file_size ); //
+    vm_spu->file_size = Get_File_Size ( code_f ) / sizeof ( elem_t ) + 1;
 
-    vm_spu->RAM = (elem_t *)calloc ( vm_spu->file_size, sizeof ( elem_t ) );
-    if ( !vm_spu->RAM ) {
+    vm_spu->data = (elem_t *)calloc ( vm_spu->file_size, sizeof ( elem_t ) );
+    if ( !vm_spu->data ) {
 
         return MEMMORY_ERR;
-    }                      // wtf
-    int ret_code = fread ( vm_spu->RAM, sizeof ( elem_t ), vm_spu->file_size, code_f );
-    printf ( "\n%d\n", ret_code );//
+    }
+
+    int ret_code = fread ( vm_spu->data, sizeof ( elem_t ), vm_spu->file_size, code_f );
     if ( ret_code != vm_spu->file_size - 1 ) {
         if ( feof ( code_f ) ) {
             printf ( "Error reading %s: unexpected end of file\n", encode_file );
@@ -52,103 +47,109 @@ Error_t Processor_Ctor ( struct Vm_t *vm_spu, const char *encode_file )
 
         return F_READ_ERR;
     }
-    for ( int i = 0; vm_spu->RAM[i] != '\0'; ++i ) {
-        printf ( "%d", vm_spu->RAM[i] );
-    }
     fclose ( code_f );
 
     return NO_ERR;
 }
 
-
-//FIXME separate file
-int Processing ( struct Vm_t *vm_spu, int *ip, Stack_t *Stack, Register_t *Register,
-                 int arg_indicator, Stack_t *Ret_Stack )
-//arg_indicator = Processing ( vm_spu->RAM[ip], &ip,
-//                                    &(vm_spu->stack), &(vm_spu->registers), arg_indicator, &new_stack );
-//int Processing ( struct Vm_t *vm_spu, int *ip, int arg_indicator, Stack_t *Ret_Stack )
+Error_t Processor ( struct Vm_t *vm_spu )
 {
-    assert ( Ret_Stack != nullptr );
+    assert ( vm_spu != nullptr );
 
-    int command   = vm_spu->RAM[*ip] & ~( ~0 << 5  ); // 0b11111; //FIXME command mask
-    printf ( "command %d\n", command );
-    int registers_flag = vm_spu->RAM[*ip] & 0b100000 ;
-    int const_flag  = vm_spu->RAM[*ip] & 0b1000000;
+    int max_ip = vm_spu->file_size * sizeof ( elem_t );
+
+    Stack_t ret_stack  = {};
+    Stack_Ctor ( &ret_stack );
+
+    for ( int ip = 0; ip < max_ip; ++ip ) {
+        if ( Processing ( vm_spu, &ip, &ret_stack ) == ARG_END ) {
+
+            break;
+        }
+        // else
+        Stack_Dump ( &(vm_spu->stack), INFORMATION );
+    }
+
+    Stack_Dtor ( &ret_stack );
+
+    return NO_ERR;
+}
+
+Arg_Indicator_t Processing ( struct Vm_t *vm_spu, int *ip, Stack_t *ret_stack )
+{
+    assert ( vm_spu    != nullptr );
+    assert ( ip        != nullptr );
+    assert ( ret_stack != nullptr );
+
+    int command        = vm_spu->data[*ip] & 0b11111;
+    int registers_flag = vm_spu->data[*ip] & 0b100000;
+    int const_flag     = vm_spu->data[*ip] & 0b1000000;
     int value = 0;
 
     if ( const_flag || registers_flag ) {
-        printf ("\nregisters\n");
         ++(*ip);
-        value = vm_spu->RAM[*ip];
+        value = vm_spu->data[*ip];
     }
-    printf ( "reg_flag %d and const_flag %d\n", registers_flag, const_flag );
-    printf ( "value %d\n", value );//
 
-    // command -> value -> reg
     switch ( command ) {
         case POP  : {
-            Register->arr[value].rx = Stack_Pop( Stack );
+            vm_spu->registers.arr[value].rx = Stack_Pop( &(vm_spu->stack) );
             break;
         }
         case PUSH : {
             if ( registers_flag != 0 ) { //
-                Stack_Push( Stack, Register->arr[value].rx );
+                Stack_Push( &(vm_spu->stack), vm_spu->registers.arr[value].rx );
             }
             else {
-                Stack_Push( Stack, value );
+                Stack_Push( &(vm_spu->stack), value );
             }
             }
             break;
         case HLT  : {
-            arg_indicator = ARG_END;
+
+            return  ARG_END;
             }
             break;
         case ADD  : {
-                elem_t temp = Stack_Pop( Stack ) + Stack_Pop( Stack );
-                Stack_Push( Stack, temp );
+                elem_t temp = Stack_Pop( &(vm_spu->stack) ) + Stack_Pop( &(vm_spu->stack) );
+                Stack_Push( &(vm_spu->stack), temp );
             }
             break;
         case MUL : {
-                elem_t temp = Stack_Pop( Stack ) * Stack_Pop( Stack );
-                Stack_Push( Stack, temp );
-            }
-            break;
-        case SQRT : {
-                elem_t temp = Stack_Pop( Stack );
-                Stack_Push( Stack, sqrt ( temp ) );
-            }
-            break;
-        case SIN  : {
-                elem_t temp = Stack_Pop( Stack );
-                Stack_Push( Stack, sin ( temp ) );
-            }
-            break;
-        case COS  : {
-                elem_t temp = Stack_Pop( Stack );
-                Stack_Push( Stack, cos ( temp ) );
+                elem_t temp = Stack_Pop( &(vm_spu->stack) ) * Stack_Pop( &(vm_spu->stack) );
+                Stack_Push( &(vm_spu->stack), temp );
             }
             break;
         case DIV  : {
-                elem_t temp = Stack_Pop( Stack ) / Stack_Pop( Stack ); // div 0
-                Stack_Push( Stack, temp );
+                elem_t temp_1 = Stack_Pop( &(vm_spu->stack) );
+                elem_t temp_2 = Stack_Pop( &(vm_spu->stack) );
+                if ( temp_2 == 0 ) {
+                    printf ( "Div error\n" );
+
+                    return ARG_END;
+                }
+                else {
+                    elem_t temp = temp_1 / temp_2;
+                    Stack_Push( &(vm_spu->stack), temp );
+                }
             }
             break;
         case SUB  : {
-                elem_t a = Stack_Pop( Stack );
-                elem_t b = Stack_Pop( Stack );
+                elem_t a = Stack_Pop( &(vm_spu->stack) );
+                elem_t b = Stack_Pop( &(vm_spu->stack) );
                 elem_t temp = a - b;
-                Stack_Push( Stack, temp );
+                Stack_Push( &(vm_spu->stack), temp );
             }
             break;
        case IN   : {
                 elem_t temp = 0;
                 printf ( "input your value : " );
                 scanf ( SPECIFIER, &temp );
-                Stack_Push( Stack, temp );
+                Stack_Push( &(vm_spu->stack), temp );
             }
             break;
        case OUT  : {
-                Stack_Pop( Stack );
+                Stack_Pop( &(vm_spu->stack) );
             }
             break;
        case JMP : {
@@ -157,97 +158,78 @@ int Processing ( struct Vm_t *vm_spu, int *ip, Stack_t *Stack, Register_t *Regis
             }
             break;
         case JA : {
-                elem_t temp_1 = Stack_Pop ( Stack );
-                elem_t temp_2 = Stack_Pop ( Stack );
+                elem_t temp_1 = Stack_Pop ( &(vm_spu->stack) );
+                elem_t temp_2 = Stack_Pop ( &(vm_spu->stack) );
                 if ( temp_1 > temp_2 ) {
                     *ip = value - 1;
                 }
             }
             break;
         case JAE : {
-                elem_t temp_1 = Stack_Pop( Stack );
-                elem_t temp_2 = Stack_Pop ( Stack );
+                elem_t temp_1 = Stack_Pop ( &(vm_spu->stack) );
+                elem_t temp_2 = Stack_Pop ( &(vm_spu->stack) );
                 if ( temp_1 >= temp_2 ) {
                     *ip = value - 1;
                 }
             }
             break;
         case JNE : {
-                elem_t temp_1 = Stack_Pop( Stack );
-                elem_t temp_2 = Stack_Pop ( Stack );
+                elem_t temp_1 = Stack_Pop ( &(vm_spu->stack) );
+                elem_t temp_2 = Stack_Pop ( &(vm_spu->stack) );
                 if ( temp_1 != temp_2 ) {
                     *ip = value - 1;
                 }
             }
             break;
         case JE : {
-                elem_t temp_1 = Stack_Pop( Stack );
-                elem_t temp_2 = Stack_Pop ( Stack );
+                elem_t temp_1 = Stack_Pop ( &(vm_spu->stack) );
+                elem_t temp_2 = Stack_Pop ( &(vm_spu->stack) );
                 if ( temp_1 == temp_2 ) {
                     *ip = value - 1;
                 }
             }
             break;
         case JB : {
-                elem_t temp_1 = Stack_Pop ( Stack );
-                elem_t temp_2 = Stack_Pop ( Stack );
+                elem_t temp_1 = Stack_Pop ( &(vm_spu->stack) );
+                elem_t temp_2 = Stack_Pop ( &(vm_spu->stack) );
                 if ( temp_1 < temp_2 ) {
                     *ip = value - 1;
                 }
             }
             break;
         case JBE : {
-                elem_t temp_1 = Stack_Pop( Stack );
-                elem_t temp_2 = Stack_Pop ( Stack );
+                elem_t temp_1 = Stack_Pop ( &(vm_spu->stack) );
+                elem_t temp_2 = Stack_Pop ( &(vm_spu->stack) );
                 if ( temp_1 <= temp_2 ) {
                     *ip = value - 1;
                 }
             }
             break;
         case RET : {
-                *ip = Stack_Pop( Ret_Stack );
+                *ip = Stack_Pop ( ret_stack );
                 printf ( "%d\n", *ip);
             }
             break;
         case CALL : {
-$               Stack_Push( Ret_Stack, *ip );
+$               Stack_Push ( ret_stack, *ip );
 $               *ip = value - 1;
             }
             break;
        default : {
-            arg_indicator = ARG_ERROR;
+
+            return ARG_ERROR;
             }
-            break; //error
+            break;
     }
 
-    //if ( const_flag || registers_flag ) {
-    //    ++(*ip);
-    //}
-
-    return arg_indicator;
+    return ARG_NO_ERROR;
 }
 
-Error_t Processor ( struct Vm_t *vm_spu )   // return error
+void Processor_Dtor ( struct Vm_t *vm_spu )
 {
     assert ( vm_spu != nullptr );
 
-    int max_ip = vm_spu->file_size * sizeof ( elem_t );
-
-    Stack_t new_stack  = {};
-    Stack_Ctor ( &new_stack );
-
-    for ( int ip = 0, arg_indicator = 0; ip < max_ip; ++ip ) {
-
-        arg_indicator = Processing ( vm_spu, &ip,
-                                    &(vm_spu->stack), &(vm_spu->registers), arg_indicator, &new_stack );
-        if ( arg_indicator == ARG_END ) {
-
-            return NO_ERR; // break;
-        }
-        Stack_Dump ( &(vm_spu->stack), INFORMATION );
-    }
-
-    Stack_Dtor ( &new_stack );  // to dtor
-
-    return NO_ERR;
+    Stack_Dtor ( &(vm_spu->stack) );
+    free ( vm_spu->data );
+    vm_spu->data = nullptr;
 }

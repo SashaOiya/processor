@@ -10,13 +10,14 @@
 #include "comand_code.h"
 #include "my_program.h" //FIXME really bad naming
 
-enum Arg_Indicator {
+enum Arg_Indicator_t {
     ARG_END      = -1,
     ARG_INPUT    = 0,
     ARG_OUTPUT   = 1,
     ARG_INPUT_IN = 2,
     ARG_FUNC     = 3,
-    ARG_ERROR    = 4
+    ARG_ERROR    = 4,
+    ARG_NO_ERROR = 5
 };
 
 struct Register_t {
@@ -28,7 +29,7 @@ struct Register_t {
 
 struct Vm_t {
     int file_size = 0;
-    elem_t *RAM   = {};
+    elem_t *data   = {};
     Stack_t stack   = {};
     Register_t registers = {};
     Error_t ret_error = NO_ERR;
@@ -41,10 +42,9 @@ enum Register {
 };
 
 Error_t Processor_Ctor ( struct Vm_t *vm_spu, const char *encode_file );
+void    Processor_Dtor ( struct Vm_t *vm_spu );
 
 Error_t Processor ( struct Vm_t *vm_spu );
-int Processing ( struct Vm_t *vm_spu, int *ip,
-                 Stack_t *Stack, Register_t *Register, int arg_indicator,
-                 Stack_t *Ret_Stack );
+Arg_Indicator_t Processing ( struct Vm_t *vm_spu, int *ip, Stack_t *Ret_Stack );
 
 #endif // PROCESSOR
