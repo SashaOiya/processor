@@ -33,6 +33,7 @@ struct Vm_t {
     Stack_t stack   = {};
     Register_t registers = {};
     Error_t ret_error = NO_ERR;
+    elem_t ram[100] = {};
 };
 
 enum Register {

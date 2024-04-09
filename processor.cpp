@@ -5,10 +5,10 @@ int main ( const int argc, const char* argv[] )
     Vm_t vm_spu = {};
 
     if ( ( vm_spu.ret_error = Processor_Ctor ( &vm_spu, argv[1] ) ) == NO_ERR ) {
-        vm_spu.ret_error = Processor ( &vm_spu );
+$       vm_spu.ret_error = Processor ( &vm_spu );
     }
-    Processor_Dtor ( &vm_spu );
-
+$   Processor_Dtor ( &vm_spu );
+$
     return 0;
 }
 
@@ -69,7 +69,7 @@ Error_t Processor ( struct Vm_t *vm_spu )
         // else
         Stack_Dump ( &(vm_spu->stack), INFORMATION );
     }
-
+$
     Stack_Dtor ( &ret_stack );
 
     return NO_ERR;
@@ -77,31 +77,48 @@ Error_t Processor ( struct Vm_t *vm_spu )
 
 Arg_Indicator_t Processing ( struct Vm_t *vm_spu, int *ip, Stack_t *ret_stack )
 {
-    assert ( vm_spu    != nullptr );
+$   assert ( vm_spu    != nullptr );
     assert ( ip        != nullptr );
     assert ( ret_stack != nullptr );
-
-    int command        = vm_spu->data[*ip] & 0b11111;
-    int registers_flag = vm_spu->data[*ip] & 0b100000;
-    int const_flag     = vm_spu->data[*ip] & 0b1000000;
+$
+    int command       = vm_spu->data[*ip] & 0b11111;
+    int register_flag = vm_spu->data[*ip] & 0b100000;
+    int const_flag    = vm_spu->data[*ip] & 0b1000000;
+    int ram_flag      = vm_spu->data[*ip] & 0b10000000;
     int value = 0;
 
-    if ( const_flag || registers_flag ) {
+    if ( const_flag || ( register_flag && !ram_flag ) ) {
         ++(*ip);
         value = vm_spu->data[*ip];
+    }
+    else if ( ram_flag ) {
+        ++(*ip);
+        value = vm_spu->data[*ip];
+        if ( register_flag ) {
+            ++(*ip);
+            value +=vm_spu->registers.arr[vm_spu->data[*ip]].rx;
+        }
     }
 
     switch ( command ) {
         case POP  : {
-            vm_spu->registers.arr[value].rx = Stack_Pop( &(vm_spu->stack) );
+            if ( ( register_flag && !ram_flag ) != 0 ) {
+                vm_spu->registers.arr[value].rx = Stack_Pop( &(vm_spu->stack) );
+            }
+            else if ( ram_flag != 0 ) {
+                Stack_Push( &(vm_spu->stack), vm_spu->ram[value] );
+            }
             break;
         }
         case PUSH : {
-            if ( registers_flag != 0 ) { //
+            if ( ( register_flag && !ram_flag ) != 0 ) { //
                 Stack_Push( &(vm_spu->stack), vm_spu->registers.arr[value].rx );
             }
-            else {
+            else if ( const_flag != 0 ){
                 Stack_Push( &(vm_spu->stack), value );
+            }
+            else if ( ram_flag != 0 ) {
+                vm_spu->ram[value] = Stack_Pop( &(vm_spu->stack) );
             }
             }
             break;
@@ -228,8 +245,9 @@ $               *ip = value - 1;
 void Processor_Dtor ( struct Vm_t *vm_spu )
 {
     assert ( vm_spu != nullptr );
-
+$
     Stack_Dtor ( &(vm_spu->stack) );
-    free ( vm_spu->data );
-    vm_spu->data = nullptr;
+$   free ( vm_spu->data );
+$   Ûvm_spu->data = nullptr;
+$
 }

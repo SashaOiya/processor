@@ -81,8 +81,8 @@ void Split_Data_Into_Lines ( struct Asm_t *assembler )
 {
     assert ( assembler != nullptr );
 
-    for ( int i = 0, j = 0; i < assembler->text.n_lines; ++j, ++i ) {   // i ???
-        assembler->text.line_array[i].start = assembler->text.data + j;   //
+    for ( int i = 0, j = 0; i < assembler->text.n_lines; ++j, ++i ) {
+        assembler->text.line_array[i].start = assembler->text.data + j;
 
         while ( assembler->text.data[j] != '\0' ) {
             if ( assembler->text.data[j] == ' ' ) {
@@ -94,8 +94,21 @@ $               assembler->text.line_array[i].element = atoi ( const_pointer ); 
                 if ( assembler->text.data[j + 1] == 'r' &&
                      assembler->text.data[j + 3] == 'x' &&
                      assembler->text.data[j + 4] == '\0' ) {
-                    assembler->text.line_array[i].registerr = *( register_pointer ) - ( 'a' - distance_command_const );
+                    assembler->text.line_array[i].registerr = *(register_pointer) - ( 'a' - distance_command_const );
                     assembler->text.line_array[i].passed_args = ( assembler->text.line_array[i].passed_args & 0 ) | reg_passed;
+                }
+                if ( assembler->text.data[j + 1] == '[' ) {
+                    assembler->text.line_array[i].passed_args = ( assembler->text.line_array[i].passed_args & 0 ) | ram_passed;
+                    int counter = 1;
+                    for ( ; isdigit  ( assembler->text.data[j + 1 + counter] ); ++counter ) {   // isspaces
+                        ;
+                    }
+                    assembler->text.line_array[i].ram = atoi ( ram_pointer );
+                    if ( assembler->text.data[j + 1 + counter] != ']' ) {
+                        assembler->text.line_array[i].passed_args |= reg_passed;
+                        printf ( "RAM REG %d\n", ( assembler->text.data[j + 3 + counter] - ( 'a' - distance_command_const ) ) ); //
+                        assembler->text.line_array[i].registerr = assembler->text.data[j + 3 + counter] - ( 'a' - distance_command_const );
+                    }
                 }
                 ++(assembler->text.ip);
             }
@@ -128,8 +141,17 @@ $       if ( strcmp ( line_array->start, command_arr[i].str ) == 0 ) {
                 ++(assembler->text.ip);
             }
             else {
-                if ( ( line_array->passed_args & reg_passed ) != 0 ) {
-                    Stack_Push ( &(assembler->stack), ( line_array->passed_args << 5 ) | command_arr[i].code );
+                if ( ( line_array->passed_args & ram_passed ) != 0 ) {
+                    Stack_Push ( &(assembler->stack),( line_array->passed_args << 5 ) | command_arr[i].code );
+                    Stack_Push ( &(assembler->stack),  line_array->ram );
+                    if ( ( line_array->passed_args & reg_passed ) != 0 ) {
+                        Stack_Push ( &(assembler->stack),  line_array->registerr );
+                        ++(assembler->text.ip);
+                    }
+                    ++(assembler->text.ip);
+                }
+                else if ( ( line_array->passed_args & reg_passed ) != 0 ) {
+                    Stack_Push ( &(assembler->stack), ( reg_passed << 5 ) | command_arr[i].code ); //
                     Stack_Push ( &(assembler->stack),  line_array->registerr );      // element
                     ++(assembler->text.ip);
                 }

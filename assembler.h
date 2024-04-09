@@ -10,9 +10,11 @@
 const int line_size = 3 * sizeof ( elem_t );
 const int distance_command_const    = 1;
 const int distance_command_register = 2;
+const int distance_command_ram      = 2;
 
 #define const_pointer    assembler->text.data + j + distance_command_const
 #define register_pointer assembler->text.data + j + distance_command_register
+#define ram_pointer      assembler->text.data + j + distance_command_ram
 
 static const int reg_passed   = 0b001;
 static const int const_passed = 0b010;
@@ -22,6 +24,7 @@ struct Line_t {
     char *start  = nullptr;
     elem_t element = 0;   // argument   // element pointer
     int registerr = 0; //?
+    int ram = 0;
     int passed_args = 0b000;
 };
 

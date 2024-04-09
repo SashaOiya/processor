@@ -12,7 +12,7 @@
 #define INFORMATION __PRETTY_FUNCTION__, __FILE__
 const int stack_mul_coeff = 2;
 
-#ifdef DEBUG
+#ifndef DEBUG
 #define $ printf ( "function <%s> line <%d>\n ", __PRETTY_FUNCTION__, __LINE__ );
 #else
 #define $

@@ -20,7 +20,7 @@ $   stack->stack_hash = Stack_Hash ( stack );
     return NO_ERR;
 }
 
-Error_t Stack_Resize ( Stack_t *stack ) //FIXME use realloc
+Error_t Stack_Resize ( Stack_t *stack )
 {
     assert ( stack != nullptr );
 
@@ -70,7 +70,7 @@ void Stack_Dtor ( Stack_t *stack )
 
 $   memset ( stack->data - sizeof ( canary_t ), '/',
              stack->size_stack * sizeof ( elem_t ) + stack_mul_coeff * sizeof ( canary_t ) );
-
+$
     free ( stack->data - sizeof ( canary_t ) );
     stack->data = nullptr;
 }
@@ -97,7 +97,7 @@ elem_t Stack_Pop ( Stack_t *stack  )
 {
     assert ( stack != nullptr );
     Stack_Rehash ( stack );
-    Stack_Verificator ( stack );
+    Stack_Verificator ( stack ); // capacity
 
     elem_t temp = *( stack->data + stack->capacity - 1 );
     --(stack->capacity);
